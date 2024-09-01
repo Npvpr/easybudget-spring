@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: easybudget-spring
+  jpa:
+    hibernate:
+      ddl-auto: update
+#   datasource:
+#     #   jdbc:h2:file:/data/easybudget didn't work
+#     url: jdbc:h2:file:./data/easybudget
+#     username: sa
+#     password:
+#     driverClassName: org.h2.Driver
+#   jpa:
+#     database-platform: org.hibernate.dialect.H2Dialect
+#   h2:
+#     console:
+#       enabled: true
