@@ -1,5 +1,6 @@
 package com.easybudget.easybudget_spring;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -9,8 +10,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import com.easybudget.easybudget_spring.item.Item;
-import com.easybudget.easybudget_spring.item.ItemRepository;
+import com.easybudget.easybudget_spring.category.Category;
+import com.easybudget.easybudget_spring.category.CategoryService;
+import com.easybudget.easybudget_spring.entry.Entry;
+import com.easybudget.easybudget_spring.entry.EntryService;
+import com.easybudget.easybudget_spring.entry.Type;
 
 @SpringBootApplication
 public class EasybudgetSpringApplication {
@@ -22,16 +26,32 @@ public class EasybudgetSpringApplication {
 	}
 
 	@Bean
-	CommandLineRunner initDatabase(ItemRepository itemRepository) {
+	CommandLineRunner initDatabase(EntryService entryService,
+			CategoryService categoryService) {
 		return args -> {
-			// if (itemRepository.count() == 0) {
-			itemRepository.save(new Item("First One", 10.0f));
-			itemRepository.save(new Item("Second One", 20.8f));
-			List<Item> items = itemRepository.findAll();
-			items.forEach(item -> {
-				log.info(item.toString());
+			// if (entryService.count() == 0) {
+			categoryService.addCategory(new Category("Food"));
+			categoryService.addCategory(new Category("Salary"));
+
+			entryService.addEntry(new Entry(
+					Type.OUTCOME,
+					categoryService.findById(1L),
+					10.5,
+					LocalDateTime.parse("2015-02-20T06:30:00"),
+					"Rice and Eggs"));
+
+			entryService.addEntry(new Entry(
+					Type.INCOME,
+					categoryService.findById(2L),
+					20.9,
+					LocalDateTime.parse("2025-01-01T09:30:00"),
+					"Software Engineer"));
+
+			List<Entry> entries = entryService.getAllItems();
+			entries.forEach(entry -> {
+				log.info(entry.toString());
 			});
-			log.info(items.toString());
+			log.info(entries.toString());
 			// } else {
 			// log.info("Sample items already exist!");
 			// }

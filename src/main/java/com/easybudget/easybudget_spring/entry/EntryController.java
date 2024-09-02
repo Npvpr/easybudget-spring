@@ -1,4 +1,4 @@
-package com.easybudget.easybudget_spring.item;
+package com.easybudget.easybudget_spring.entry;
 
 import java.util.List;
 
@@ -12,17 +12,18 @@ import org.springframework.web.bind.annotation.RestController;
 import com.easybudget.easybudget_spring.EasybudgetSpringApplication;
 
 @RestController
-@RequestMapping("/api/items")
-public class ItemController {
+@RequestMapping("/api/entries")
+public class EntryController {
 
     @Autowired
-    private ItemService itemService;
+    private EntryService entryService;
 
-    private static final Logger log = LoggerFactory.getLogger(EasybudgetSpringApplication.class);
+    // private static final Logger log =
+    // LoggerFactory.getLogger(EasybudgetSpringApplication.class);
 
     @GetMapping
-    public List<Item> getAllItems() {
-        return itemService.getAllItems();
+    public List<Entry> getAllItems() {
+        return entryService.getAllItems();
     }
 
 }

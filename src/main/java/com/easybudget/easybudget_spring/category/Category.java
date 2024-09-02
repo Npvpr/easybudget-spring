@@ -1,4 +1,4 @@
-package com.easybudget.easybudget_spring.item;
+package com.easybudget.easybudget_spring.category;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -6,32 +6,28 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
-public class Item {
+public class Category {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
 
-    private float cost;
-
-    public Item() {
+    public Category() {
 
     }
 
-    public Item(String name, float cost) {
+    public Category(String name) {
         this.name = name;
-        this.cost = cost;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Item[id = %d, Name = %s, Cost = %f]",
-                id, name, cost);
     }
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -42,11 +38,4 @@ public class Item {
         this.name = name;
     }
 
-    public float getCost() {
-        return cost;
-    }
-
-    public void setCost(float cost) {
-        this.cost = cost;
-    }
 }
