@@ -1,14 +1,18 @@
 package com.easybudget.easybudget_spring.entry;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.easybudget.easybudget_spring.category.Category;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 public class Entry {
@@ -16,12 +20,14 @@ public class Entry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Type cannot be null.")
+    @Enumerated(EnumType.STRING)
     private Type type;
 
     @ManyToOne
     private Category category;
 
-    private Double cost;
+    private BigDecimal cost;
 
     private LocalDateTime dateTime;
 
@@ -31,7 +37,7 @@ public class Entry {
 
     }
 
-    public Entry(Type type, Category category, Double cost, LocalDateTime dateTime, String description) {
+    public Entry(Type type, Category category, BigDecimal cost, LocalDateTime dateTime, String description) {
         this.type = type;
         this.category = category;
         this.cost = cost;
@@ -63,11 +69,11 @@ public class Entry {
         this.category = category;
     }
 
-    public Double getCost() {
+    public BigDecimal getCost() {
         return cost;
     }
 
-    public void setCost(Double cost) {
+    public void setCost(BigDecimal cost) {
         this.cost = cost;
     }
 

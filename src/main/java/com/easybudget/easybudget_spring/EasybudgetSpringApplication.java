@@ -1,5 +1,6 @@
 package com.easybudget.easybudget_spring;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,32 +30,33 @@ public class EasybudgetSpringApplication {
 	CommandLineRunner initDatabase(EntryService entryService,
 			CategoryService categoryService) {
 		return args -> {
-			// if (entryService.count() == 0) {
-			categoryService.addCategory(new Category("Food"));
-			categoryService.addCategory(new Category("Salary"));
+			String loadData = "no";
+			if (loadData == "load") {
+				categoryService.addCategory(new Category("Food"));
+				categoryService.addCategory(new Category("Salary"));
 
-			entryService.addEntry(new Entry(
-					Type.OUTCOME,
-					categoryService.findById(1L),
-					10.5,
-					LocalDateTime.parse("2015-02-20T06:30:00"),
-					"Rice and Eggs"));
+				entryService.addEntry(new Entry(
+						Type.OUTCOME,
+						categoryService.getCategoryById(1L),
+						new BigDecimal(10.5),
+						LocalDateTime.parse("2015-02-20T06:30:00"),
+						"Rice and Eggs"));
 
-			entryService.addEntry(new Entry(
-					Type.INCOME,
-					categoryService.findById(2L),
-					20.9,
-					LocalDateTime.parse("2025-01-01T09:30:00"),
-					"Software Engineer"));
+				entryService.addEntry(new Entry(
+						Type.INCOME,
+						categoryService.getCategoryById(2L),
+						new BigDecimal(20.9),
+						LocalDateTime.parse("2025-01-01T09:30:00"),
+						"Software Engineer"));
 
-			List<Entry> entries = entryService.getAllItems();
-			entries.forEach(entry -> {
-				log.info(entry.toString());
-			});
-			log.info(entries.toString());
-			// } else {
-			// log.info("Sample items already exist!");
-			// }
+				List<Entry> entries = entryService.getAllEntries();
+				entries.forEach(entry -> {
+					log.info(entry.toString());
+				});
+				log.info(entries.toString());
+			} else {
+				log.info("Sample items already exist!");
+			}
 		};
 	}
 }
