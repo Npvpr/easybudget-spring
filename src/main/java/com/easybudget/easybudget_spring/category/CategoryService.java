@@ -1,10 +1,11 @@
 package com.easybudget.easybudget_spring.category;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.easybudget.easybudget_spring.exception.NotFoundException;
 
 @Service
 public class CategoryService {
@@ -15,13 +16,27 @@ public class CategoryService {
         return categoryRepository.findAll();
     }
 
+    public Category getCategoryById(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Category not found with id: " + id));
+    }
+
     public Category addCategory(Category category) {
         return categoryRepository.save(category);
     }
 
-    public Category findById(Long id) {
-        Optional<Category> optionalCategory = categoryRepository.findById(id);
-        return optionalCategory.orElse(null);
+    public Category updateCategory(Long id, Category category) {
+        Category existingCategory = this.getCategoryById(id);
+        if (existingCategory != null) {
+            existingCategory.setName(category.getName());
+            return categoryRepository.save(existingCategory);
+        } else {
+            return null;
+        }
+    }
+
+    public void deleteCategory(Long id) {
+        categoryRepository.deleteById(id);
     }
 
 }
