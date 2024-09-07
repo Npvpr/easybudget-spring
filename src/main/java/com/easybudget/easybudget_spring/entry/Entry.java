@@ -5,32 +5,53 @@ import java.time.LocalDateTime;
 
 import com.easybudget.easybudget_spring.category.Category;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity
 public class Entry {
     @Id
+    // GenerationType.AUTO skipped so many numbers for some reason
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull(message = "Type cannot be null.")
+    // This will save type column as strings
+    // Without this, default EnumType is Ordinal, which will save as IDs
+    // Changing this caused database error because entry_check for IDs(integers)
+    // still existed(removed it)
     @Enumerated(EnumType.STRING)
     private Type type;
 
-    @ManyToOne
+    @NotNull(message = "Category cannot be null.")
+    // With cascade all, all persistance operations(CRUD) on the parent
+    // entity(Category) will be automatically applied to the child entity(Entry)
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "category_id")
     private Category category;
 
+    @NotNull(message = "Cost cannot be null.")
+    @DecimalMin(value = "0.01", inclusive = true, message = "Cost must be greater than zero.")
+    @DecimalMax(value = "1000000000.00", inclusive = true, message = "Cost cannot exceed 1 billion.")
+    // BigDecimal is the best data type for currency due to "GOOGLE"
     private BigDecimal cost;
 
+    @NotNull(message = "DateTime cannot be null.")
     private LocalDateTime dateTime;
 
+    @NotNull(message = "Description cannot be null.")
+    @Size(max = 1000, message = "Description cannot exceed 1000 characters.")
     private String description;
 
     public Entry() {
