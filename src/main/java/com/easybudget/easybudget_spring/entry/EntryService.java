@@ -2,10 +2,13 @@ package com.easybudget.easybudget_spring.entry;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.easybudget.easybudget_spring.EasybudgetSpringApplication;
 import com.easybudget.easybudget_spring.exception.NotFoundException;
 
 // @Transactional is an annotation in Spring that helps manage database transactions. 
@@ -16,6 +19,8 @@ import com.easybudget.easybudget_spring.exception.NotFoundException;
 @Transactional
 @Service
 public class EntryService {
+
+    private static final Logger log = LoggerFactory.getLogger(EasybudgetSpringApplication.class);
 
     @Autowired
     private EntryRepository entryRepository;
@@ -53,9 +58,15 @@ public class EntryService {
 
     public void deleteEntry(Long id) {
         entryRepository.deleteById(id);
+        log.info("Deleting an Entry: " + id + " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    }
+
+    public void deleteAllEntriesByAccountId(Long id) {
+        entryRepository.deleteByAccountId(id);
     }
 
     public void deleteAllEntriesByCategoryId(Long id) {
         entryRepository.deleteByCategoryId(id);
     }
+
 }
