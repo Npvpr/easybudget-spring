@@ -10,5 +10,7 @@ import org.springframework.stereotype.Repository;
 interface EntryRepository extends JpaRepository<Entry, Long> {
     List<Entry> findByCategoryId(Long id);
 
+    void deleteByAccountId(Long id);
+
     void deleteByCategoryId(Long id);
 }

@@ -3,9 +3,9 @@ package com.easybudget.easybudget_spring.entry;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.easybudget.easybudget_spring.account.Account;
 import com.easybudget.easybudget_spring.category.Category;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -34,10 +34,15 @@ public class Entry {
     @Enumerated(EnumType.STRING)
     private Type type;
 
+    @NotNull(message = "Account cannot be null")
+    @ManyToOne
+    @JoinColumn(name = "account_id")
+    private Account account;
+
     @NotNull(message = "Category cannot be null.")
-    // With cascade all, all persistance operations(CRUD) on the parent
-    // entity(Category) will be automatically applied to the child entity(Entry)
-    @ManyToOne(cascade = CascadeType.ALL)
+    // After deleting all categories, I added new entry and got "detached entity
+    // passed to persist" error => Removing cascade fixed the error
+    @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
 
@@ -58,12 +63,20 @@ public class Entry {
 
     }
 
-    public Entry(Type type, Category category, BigDecimal cost, LocalDateTime dateTime, String description) {
+    public Entry(Type type, Account account, Category category, BigDecimal cost, LocalDateTime dateTime,
+            String description) {
         this.type = type;
+        this.account = account;
         this.category = category;
         this.cost = cost;
         this.dateTime = dateTime;
         this.description = description;
+    }
+
+    @Override
+    public String toString() {
+        return "Entry [id=" + id + ", type=" + type + ", account=" + account + ", category=" + category + ", cost="
+                + cost + ", dateTime=" + dateTime + ", description=" + description + "]";
     }
 
     public Long getId() {
@@ -80,6 +93,14 @@ public class Entry {
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+    public Account getAccount() {
+        return account;
+    }
+
+    public void setAccount(Account account) {
+        this.account = account;
     }
 
     public Category getCategory() {
