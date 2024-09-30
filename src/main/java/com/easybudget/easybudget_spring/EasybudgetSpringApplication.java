@@ -36,7 +36,7 @@ public class EasybudgetSpringApplication {
 			if (loadData == "load") {
 				categoryService.addCategory(new Category("Food"));
 				categoryService.addCategory(new Category("Salary"));
-				accountService.addAccount(new Account("Cash"));
+				accountService.addAccount(new Account("Cash", new BigDecimal(1000)));
 
 				entryService.addEntry(new Entry(
 						Type.OUTCOME,
