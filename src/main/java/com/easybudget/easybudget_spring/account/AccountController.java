@@ -1,5 +1,6 @@
 package com.easybudget.easybudget_spring.account;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,11 @@ public class AccountController {
     @GetMapping("/all")
     public List<Account> getAllAccounts() {
         return accountService.getAllAccounts();
+    }
+
+    @GetMapping("/totalBalance")
+    public BigDecimal getTotalBalance() {
+        return accountService.getTotalBalance();
     }
 
     @GetMapping

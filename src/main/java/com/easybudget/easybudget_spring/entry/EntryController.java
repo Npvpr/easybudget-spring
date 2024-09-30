@@ -37,8 +37,6 @@ public class EntryController {
 
     @PostMapping
     public Entry addEntry(@RequestBody Entry entry) {
-        log.info("It's in HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        log.info(entry.toString());
         return entryService.addEntry(entry);
     }
 

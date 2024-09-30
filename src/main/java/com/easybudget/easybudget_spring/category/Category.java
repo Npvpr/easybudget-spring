@@ -26,11 +26,9 @@ public class Category {
     private String name;
 
     public Category() {
-        log.info("Category NoArgs~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     }
 
     public Category(String name) {
-        log.info("Category AllArgs~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         this.name = name;
 
     }
