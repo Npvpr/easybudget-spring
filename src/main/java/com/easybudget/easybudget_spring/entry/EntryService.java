@@ -1,10 +1,18 @@
 package com.easybudget.easybudget_spring.entry;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,4 +109,152 @@ public class EntryService {
         entryRepository.deleteByCategoryId(id);
     }
 
+    public Map<String, Object> filterEntriesForMonthEntry(int year, int month) {
+
+        LocalDateTime startDateTime = LocalDateTime.of(
+                year, month, 1, 0, 0, 0);
+        LocalDateTime endDateTime = LocalDateTime.of(
+                year, month, YearMonth.of(year, month).lengthOfMonth(), 23, 59, 59);
+
+        Specification<Entry> spec = Specification
+                .where(EntrySpecificatioin.hasDateTimeBetween(startDateTime, endDateTime));
+
+        List<Entry> entries = entryRepository.findAll(spec);
+
+        BigDecimal totalIncome = BigDecimal.ZERO;
+        BigDecimal totalOutcome = BigDecimal.ZERO;
+        BigDecimal totalBalance = BigDecimal.ZERO;
+
+        for (Entry entry : entries) {
+            if (entry.getType() == Type.INCOME) {
+                totalIncome = totalIncome.add(entry.getCost());
+                totalBalance = totalBalance.add(entry.getCost());
+            } else {
+                totalOutcome = totalOutcome.add(entry.getCost());
+                totalBalance = totalBalance.subtract(entry.getCost());
+            }
+        }
+
+        Map<String, Object> result = new HashMap<>();
+
+        result.put("entries", entries);
+        result.put("totalIncome", totalIncome);
+        result.put("totalOutcome", totalOutcome);
+        result.put("totalBalance", totalBalance);
+
+        return result;
+    }
+
+    private Map<String, Object> filterEntriesForGraphs(Integer year, Integer month, Integer endYear) {
+
+        LocalDateTime startDateTime, endDateTime;
+
+        if (month != null) {
+            startDateTime = LocalDateTime.of(
+                    year, month, 1, 0, 0, 0);
+            endDateTime = LocalDateTime.of(
+                    year, month, YearMonth.of(year, month).lengthOfMonth(), 23, 59, 59);
+        } else if (endYear != null) {
+            startDateTime = LocalDateTime.of(
+                    year, 1, 1, 0, 0, 0);
+            endDateTime = LocalDateTime.of(
+                    endYear, 12, 31, 23, 59, 59);
+        } else {
+            startDateTime = LocalDateTime.of(
+                    year, 1, 1, 0, 0, 0);
+            endDateTime = LocalDateTime.of(
+                    year, 12, 31, 23, 59, 59);
+        }
+
+        Specification<Entry> spec = Specification
+                .where(EntrySpecificatioin.hasDateTimeBetween(startDateTime, endDateTime));
+
+        List<Entry> entries = entryRepository.findAll(spec);
+
+        Map<Object, BigDecimal> incomeList = new HashMap<>();
+        Map<String, BigDecimal> incomeCategoryList = new HashMap<>();
+        Map<Object, BigDecimal> outcomeList = new HashMap<>();
+        Map<String, BigDecimal> outcomeCategoryList = new HashMap<>();
+
+        for (Entry entry : entries) {
+            Object date = (month != null) ? entry.getDateTime().getDayOfMonth()
+                    : (endYear != null) ? entry.getDateTime().getYear() : entry.getDateTime().getMonth();
+            String categoryName = entry.getCategory().getName();
+
+            if (entry.getType() == Type.INCOME) {
+                incomeList.put(date, incomeList.getOrDefault(date, BigDecimal.ZERO).add(entry.getCost()));
+                incomeCategoryList.put(categoryName,
+                        incomeCategoryList.getOrDefault(categoryName, BigDecimal.ZERO).add(entry.getCost()));
+            } else {
+                outcomeList.put(date, outcomeList.getOrDefault(date, BigDecimal.ZERO).add(entry.getCost()));
+                outcomeCategoryList.put(categoryName,
+                        outcomeCategoryList.getOrDefault(categoryName, BigDecimal.ZERO).add(entry.getCost()));
+            }
+        }
+
+        incomeCategoryList = calculateCategoryPercentages(incomeCategoryList);
+        outcomeCategoryList = calculateCategoryPercentages(outcomeCategoryList);
+
+        Map<String, Object> result = new HashMap<>();
+
+        result.put("incomeList", incomeList);
+        result.put("incomeCategoryList", incomeCategoryList);
+        result.put("outcomeList", outcomeList);
+        result.put("outcomeCategoryList", outcomeCategoryList);
+
+        return result;
+    }
+
+    private Map<String, BigDecimal> calculateCategoryPercentages(Map<String, BigDecimal> categoryList) {
+        BigDecimal totalCategoryAmount = BigDecimal.ZERO;
+
+        for (BigDecimal amount : categoryList.values()) {
+            totalCategoryAmount = totalCategoryAmount.add(amount);
+        }
+
+        for (Map.Entry<String, BigDecimal> entry : categoryList.entrySet()) {
+            String categoryName = entry.getKey(); // Get the key (category name)
+            BigDecimal categoryAmount = entry.getValue(); // Get the value (category amount)
+
+            categoryAmount = categoryAmount
+                    .divide(totalCategoryAmount, 2, RoundingMode.HALF_UP) // Divide and specify scale and rounding mode
+                    .multiply(new BigDecimal("100")); // Multiply by 100 to get the percentage
+
+            categoryList.put(categoryName, categoryAmount);
+        }
+
+        return categoryList;
+    }
+
+    public Map<String, Object> filterEntriesForGraphsOfMonth(int year, int month) {
+        return filterEntriesForGraphs(year, month, null);
+    }
+
+    public Map<String, Object> filterEntriesForGraphsOfYear(int year) {
+        return filterEntriesForGraphs(year, null, null);
+    }
+
+    public Map<String, Object> filterEntriesForGraphsOfYears(int startYear, int endYear) {
+        return filterEntriesForGraphs(startYear, null, endYear);
+    }
+
+    public List<Entry> filterEntriesForHistory(Type type, Long accountId, Long categoryId, LocalDateTime startDate,
+            LocalDateTime endDate, String sortField, String sortOrder) {
+
+        Specification<Entry> spec = Specification
+                .where(EntrySpecificatioin.hasType(type))
+                .and(EntrySpecificatioin.hasAccountById(accountId))
+                .and(EntrySpecificatioin.hasCategoryById(categoryId))
+                .and(EntrySpecificatioin.hasDateTimeBetween(startDate, endDate));
+        ;
+
+        // This makes DateTime Descending Order as default, even if frontend requests
+        // false/null inputs
+        sortField = "cost".equalsIgnoreCase(sortField) ? "cost" : "dateTime";
+        Sort.Direction sortDirection = "ASC".equalsIgnoreCase(sortOrder) ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        Sort sort = Sort.by(sortDirection, sortField);
+
+        return entryRepository.findAll(spec, sort);
+    }
 }

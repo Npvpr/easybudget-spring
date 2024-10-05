@@ -1,6 +1,10 @@
 package com.easybudget.easybudget_spring.entry;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,4 +54,36 @@ public class EntryController {
         entryService.deleteEntry(id);
     }
 
+    @GetMapping("/monthEntry")
+    public Map<String, Object> getEntriesForMonthEntry(@RequestParam int year, @RequestParam int month) {
+        return entryService.filterEntriesForMonthEntry(year, month);
+    }
+
+    @GetMapping("/graphs/month")
+    public Map<String, Object> getEntriesForGraphsOfMonth(@RequestParam int year, @RequestParam int month) {
+        return entryService.filterEntriesForGraphsOfMonth(year, month);
+    }
+
+    @GetMapping("/graphs/year")
+    public Map<String, Object> getEntriesForGraphsOfYear(@RequestParam int year) {
+        return entryService.filterEntriesForGraphsOfYear(year);
+    }
+
+    @GetMapping("/graphs/years")
+    public Map<String, Object> getEntriesForGraphsOfYears(@RequestParam int startYear, @RequestParam int endYear) {
+        return entryService.filterEntriesForGraphsOfYears(startYear, endYear);
+    }
+
+    @GetMapping("/history")
+    public List<Entry> getEntriesForHistory(
+            @RequestParam(required = false) Type type,
+            @RequestParam(required = false) Long accountId,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) LocalDateTime startDate,
+            @RequestParam(required = false) LocalDateTime endDate,
+            String sortField, String sortOrder) {
+
+        return entryService.filterEntriesForHistory(type, accountId, categoryId, startDate, endDate, sortField,
+                sortOrder);
+    }
 }
