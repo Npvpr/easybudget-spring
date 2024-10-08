@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 public class BackupDatabase {
     public static void main(String[] args) {
         try {
+            // I should encrypt this password
             String command = "sudo mysqldump -u easybudgetadmin -peasybudgetpw easybudgetdb > ../db_backups/backup_"
                     + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + ".sql";
             // Create a process builder that runs a bash command
