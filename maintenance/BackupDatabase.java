@@ -1,12 +1,16 @@
+// package maintenance;
+// for unkown reason, mysqldump will not run if run from maintenance.BackupDatabase
+// This will only work when pwd is inside directory and run with "java BackupDatabase"
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class test {
+public class BackupDatabase {
     public static void main(String[] args) {
         try {
-            String command = "sudo mysqldump -u easybudgetadmin -peasybudgetpw easybudgetdb > ./db_backups/backup_"
+            String command = "sudo mysqldump -u easybudgetadmin -peasybudgetpw easybudgetdb > ../db_backups/backup_"
                     + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + ".sql";
             // Create a process builder that runs a bash command
             // this command can be .sh file
