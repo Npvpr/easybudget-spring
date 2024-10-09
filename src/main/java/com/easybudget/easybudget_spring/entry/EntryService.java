@@ -172,9 +172,11 @@ public class EntryService {
         List<Entry> entries = entryRepository.findAll(spec);
 
         Map<Object, BigDecimal> incomeList = new HashMap<>();
-        Map<String, BigDecimal> incomeCategoryList = new HashMap<>();
+        Map<String, BigDecimal> incomeCategoryCostList = new HashMap<>();
+        Map<String, BigDecimal> incomeCategoryPercentageList = new HashMap<>();
         Map<Object, BigDecimal> outcomeList = new HashMap<>();
-        Map<String, BigDecimal> outcomeCategoryList = new HashMap<>();
+        Map<String, BigDecimal> outcomeCategoryCostList = new HashMap<>();
+        Map<String, BigDecimal> outcomeCategoryPercentageList = new HashMap<>();
 
         for (Entry entry : entries) {
             Object date = (month != null) ? entry.getDateTime().getDayOfMonth()
@@ -183,36 +185,43 @@ public class EntryService {
 
             if (entry.getType() == Type.INCOME) {
                 incomeList.put(date, incomeList.getOrDefault(date, BigDecimal.ZERO).add(entry.getCost()));
-                incomeCategoryList.put(categoryName,
-                        incomeCategoryList.getOrDefault(categoryName, BigDecimal.ZERO).add(entry.getCost()));
+                incomeCategoryCostList.put(categoryName,
+                        incomeCategoryCostList.getOrDefault(categoryName, BigDecimal.ZERO).add(entry.getCost()));
             } else {
                 outcomeList.put(date, outcomeList.getOrDefault(date, BigDecimal.ZERO).add(entry.getCost()));
-                outcomeCategoryList.put(categoryName,
-                        outcomeCategoryList.getOrDefault(categoryName, BigDecimal.ZERO).add(entry.getCost()));
+                outcomeCategoryCostList.put(categoryName,
+                        outcomeCategoryCostList.getOrDefault(categoryName, BigDecimal.ZERO).add(entry.getCost()));
             }
         }
 
-        incomeCategoryList = calculateCategoryPercentages(incomeCategoryList);
-        outcomeCategoryList = calculateCategoryPercentages(outcomeCategoryList);
+        log.info(outcomeCategoryCostList.toString());
+
+        incomeCategoryPercentageList = calculateCategoryPercentages(incomeCategoryCostList);
+        outcomeCategoryPercentageList = calculateCategoryPercentages(outcomeCategoryCostList);
+
+        log.info(outcomeCategoryCostList.toString());
 
         Map<String, Object> result = new HashMap<>();
 
         result.put("incomeList", incomeList);
-        result.put("incomeCategoryList", incomeCategoryList);
+        result.put("incomeCategoryCostList", incomeCategoryCostList);
+        result.put("incomeCategoryPercentageList", incomeCategoryPercentageList);
         result.put("outcomeList", outcomeList);
-        result.put("outcomeCategoryList", outcomeCategoryList);
+        result.put("outcomeCategoryCostList", outcomeCategoryCostList);
+        result.put("outcomeCategoryPercentageList", outcomeCategoryPercentageList);
 
         return result;
     }
 
-    private Map<String, BigDecimal> calculateCategoryPercentages(Map<String, BigDecimal> categoryList) {
+    private Map<String, BigDecimal> calculateCategoryPercentages(Map<String, BigDecimal> categoryCostList) {
         BigDecimal totalCategoryAmount = BigDecimal.ZERO;
+        Map<String, BigDecimal> categoryPercentageList = new HashMap<>();
 
-        for (BigDecimal amount : categoryList.values()) {
+        for (BigDecimal amount : categoryCostList.values()) {
             totalCategoryAmount = totalCategoryAmount.add(amount);
         }
 
-        for (Map.Entry<String, BigDecimal> entry : categoryList.entrySet()) {
+        for (Map.Entry<String, BigDecimal> entry : categoryCostList.entrySet()) {
             String categoryName = entry.getKey(); // Get the key (category name)
             BigDecimal categoryAmount = entry.getValue(); // Get the value (category amount)
 
@@ -220,10 +229,10 @@ public class EntryService {
                     .divide(totalCategoryAmount, 2, RoundingMode.HALF_UP) // Divide and specify scale and rounding mode
                     .multiply(new BigDecimal("100")); // Multiply by 100 to get the percentage
 
-            categoryList.put(categoryName, categoryAmount);
+            categoryPercentageList.put(categoryName, categoryAmount);
         }
 
-        return categoryList;
+        return categoryPercentageList;
     }
 
     public Map<String, Object> filterEntriesForGraphsOfMonth(int year, int month) {
