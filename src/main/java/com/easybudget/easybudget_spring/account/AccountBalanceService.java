@@ -1,6 +1,7 @@
 package com.easybudget.easybudget_spring.account;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -55,5 +56,22 @@ public class AccountBalanceService {
         }
 
         return accountRepository.save(newAccount);
+    }
+
+    public Account updateAccountBalanceOfDeletedEntry(Entry entry) {
+        Account account = entry.getAccount();
+
+        if (entry.getType() == Type.INCOME) {
+            account.setBalance(account.getBalance().subtract(entry.getCost()));
+        } else {
+            account.setBalance(account.getBalance().add(entry.getCost()));
+        }
+        return accountRepository.save(account);
+    }
+
+    public void updateAccountBalanceOfDeletedCategory(List<Entry> entries) {
+        for (Entry entry : entries) {
+            this.updateAccountBalanceOfDeletedEntry(entry);
+        }
     }
 }

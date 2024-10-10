@@ -52,10 +52,6 @@ public class EntryService {
         return entryRepository.findAll();
     }
 
-    public List<Entry> getAllEntriesByCategoryID(Long id) {
-        return entryRepository.findByCategoryId(id);
-    }
-
     public Entry getEntryById(Long id) {
         return entryCheckService.findEntryById(id);
     }
@@ -97,15 +93,25 @@ public class EntryService {
     }
 
     public void deleteEntry(Long id) {
-        entryCheckService.findEntryById(id);
+        Entry entry = entryCheckService.findEntryById(id);
+        accountBalanceService.updateAccountBalanceOfDeletedEntry(entry);
+
         entryRepository.deleteById(id);
     }
 
     public void deleteAllEntriesByAccountId(Long id) {
+        // related account will be deleted so account balance
+        // will not be required to update
         entryRepository.deleteByAccountId(id);
     }
 
     public void deleteAllEntriesByCategoryId(Long id) {
+        // update all accounts related to all entries
+        // related to the deleted category
+        Specification<Entry> spec = Specification.where(EntrySpecificatioin.hasCategoryById(id));
+        List<Entry> entries = entryRepository.findAll(spec);
+        accountBalanceService.updateAccountBalanceOfDeletedCategory(entries);
+
         entryRepository.deleteByCategoryId(id);
     }
 
