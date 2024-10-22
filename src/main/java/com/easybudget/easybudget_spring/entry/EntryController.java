@@ -1,6 +1,5 @@
 package com.easybudget.easybudget_spring.entry;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +74,7 @@ public class EntryController {
     }
 
     @GetMapping("/history")
-    public List<Entry> getEntriesForHistory(
+    public Map<String, Object> getEntriesForHistory(
             @RequestParam(required = false) Type type,
             @RequestParam(required = false) Long accountId,
             @RequestParam(required = false) Long categoryId,

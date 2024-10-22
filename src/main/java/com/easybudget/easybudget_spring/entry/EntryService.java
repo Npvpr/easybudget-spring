@@ -125,7 +125,7 @@ public class EntryService {
         Specification<Entry> spec = Specification
                 .where(EntrySpecificatioin.hasDateTimeBetween(startDateTime, endDateTime));
 
-        List<Entry> entries = entryRepository.findAll(spec);
+        List<Entry> entries = entryRepository.findAll(spec, Sort.by(Sort.Direction.ASC, "dateTime"));
 
         BigDecimal totalIncome = BigDecimal.ZERO;
         BigDecimal totalOutcome = BigDecimal.ZERO;
@@ -200,12 +200,8 @@ public class EntryService {
             }
         }
 
-        log.info(outcomeCategoryCostList.toString());
-
         incomeCategoryPercentageList = calculateCategoryPercentages(incomeCategoryCostList);
         outcomeCategoryPercentageList = calculateCategoryPercentages(outcomeCategoryCostList);
-
-        log.info(outcomeCategoryCostList.toString());
 
         Map<String, Object> result = new HashMap<>();
 
@@ -253,7 +249,8 @@ public class EntryService {
         return filterEntriesForGraphs(startYear, null, endYear);
     }
 
-    public List<Entry> filterEntriesForHistory(Type type, Long accountId, Long categoryId, LocalDateTime startDate,
+    public Map<String, Object> filterEntriesForHistory(Type type, Long accountId, Long categoryId,
+            LocalDateTime startDate,
             LocalDateTime endDate, String sortField, String sortOrder) {
 
         Specification<Entry> spec = Specification
@@ -270,6 +267,21 @@ public class EntryService {
 
         Sort sort = Sort.by(sortDirection, sortField);
 
-        return entryRepository.findAll(spec, sort);
+        List<Entry> entries = entryRepository.findAll(spec, sort);
+        BigDecimal totalCost = BigDecimal.ZERO;
+
+        for (Entry entry : entries) {
+            if (entry.getType() == Type.INCOME) {
+                totalCost = totalCost.add(entry.getCost());
+            } else {
+                totalCost = totalCost.subtract(entry.getCost());
+            }
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("entries", entries);
+        result.put("totalCost", totalCost);
+
+        return result;
     }
 }
