@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import com.easybudget.easybudget_spring.account.Account;
 import com.easybudget.easybudget_spring.category.Category;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -26,6 +27,7 @@ public class Entry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "type")
     @NotNull(message = "Type cannot be null.")
     // This will save type column as strings
     // Without this, default EnumType is Ordinal, which will save as IDs
@@ -52,9 +54,12 @@ public class Entry {
     // BigDecimal is the best data type for currency due to "GOOGLE"
     private BigDecimal cost;
 
+    // SQL is not case sensitive, so you can't name dateTime
+    @Column(name = "datetime")
     @NotNull(message = "DateTime cannot be null.")
     private LocalDateTime dateTime;
 
+    @Column(name = "description")
     @NotNull(message = "Description cannot be null.")
     @Size(max = 1000, message = "Description cannot exceed 1000 characters.")
     private String description;
