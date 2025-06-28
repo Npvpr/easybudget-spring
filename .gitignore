@@ -34,3 +34,7 @@ build/
 
 # Developing Only
 ./test.java
+
+# Environment files
+*.properties
+.env
