@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,33 +23,34 @@ public class AccountController {
     private AccountService accountService;
 
     @GetMapping("/all")
-    public List<Account> getAllAccounts() {
-        return accountService.getAllAccounts();
+    public ResponseEntity<List<AccountDto>> getAllAccounts() {
+        return new ResponseEntity<>(accountService.getAllAccounts(), HttpStatus.OK);
     }
 
     @GetMapping("/totalBalance")
-    public BigDecimal getTotalBalance() {
-        return accountService.getTotalBalance();
+    public ResponseEntity<BigDecimal> getTotalBalance() {
+        return new ResponseEntity<>(accountService.getTotalBalance(), HttpStatus.OK);
     }
 
     @GetMapping
-    public Account getAccountById(@RequestParam Long id) {
-        return accountService.getAccountById(id);
+    public ResponseEntity<AccountDto> getAccountById(@RequestParam Long accountId) {
+        return new ResponseEntity<>(accountService.getAccountById(accountId), HttpStatus.OK);
     }
 
     @PostMapping
-    public Account addAccount(@RequestBody Account account) {
-        return accountService.addAccount(account);
+    public ResponseEntity<AccountDto> addAccount(@RequestParam String accountName) {
+        return new ResponseEntity<>(accountService.addAccount(accountName), HttpStatus.CREATED);
     }
 
     @PutMapping
-    public Account updateAccount(@RequestParam Long id, @RequestBody Account account) {
-        return accountService.updateAccount(id, account);
+    public ResponseEntity<AccountDto> updateAccount(@RequestParam Long accountId, @RequestParam String newAccountName) {
+        return new ResponseEntity<>(accountService.updateAccount(accountId, newAccountName), HttpStatus.OK);
     }
 
     @DeleteMapping
-    public void deleteAccount(@RequestParam Long id) {
-        accountService.deleteAccount(id);
+    public ResponseEntity<Void> deleteAccount(@RequestParam Long accountId) {
+        accountService.deleteAccount(accountId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 }

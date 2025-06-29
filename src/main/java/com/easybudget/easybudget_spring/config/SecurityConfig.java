@@ -21,22 +21,17 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.easybudget.easybudget_spring.security.AuthEntryPointJwt;
 import com.easybudget.easybudget_spring.security.AuthTokenFilter;
-import com.easybudget.easybudget_spring.user.CustomUserDetailsService;
+// import com.easybudget.easybudget_spring.user.CustomUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Autowired
-    CustomUserDetailsService userDetailsService;
+    private AuthEntryPointJwt authEntryPointJwt;
 
     @Autowired
-    private AuthEntryPointJwt unauthorizedHandler;
-
-    @Bean
-    public AuthTokenFilter authenticationJwtTokenFilter(){
-        return new AuthTokenFilter();
-    }
+    private AuthTokenFilter authTokenFilter;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception{
@@ -66,7 +61,9 @@ public class SecurityConfig {
         http
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
-            .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(unauthorizedHandler))
+            // for all unauthenticated errors
+            // might need to improve this, now every exception is thrown into this handler
+            .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(authEntryPointJwt))
             .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorizeRequests -> authorizeRequests
             .requestMatchers("/api/auth/**", "/api/test/all").permitAll()  // public for login/signup endpoints
@@ -74,7 +71,7 @@ public class SecurityConfig {
         );
 
         // Add the JWT Token filter before the UsernamePasswordAuthenticationFilter
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

@@ -1,10 +1,13 @@
 package com.easybudget.easybudget_spring.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.easybudget.easybudget_spring.auth.RegisterRequest;
+import com.easybudget.easybudget_spring.exception.NotFoundException;
 
 @Service
 public class UserService {
@@ -35,5 +38,27 @@ public class UserService {
 
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    public User getCurrentAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new NotFoundException("No authenticated user found");
+        }
+        System.out.println("Authentication: " + authentication);
+
+        Long userId = Long.valueOf(authentication.getName());
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+    }
+
+    public UserInfosDto getUserInfos() {
+        
+        User user = getCurrentAuthenticatedUser();
+
+        return UserInfosDto.builder()
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .build();
     }
 }

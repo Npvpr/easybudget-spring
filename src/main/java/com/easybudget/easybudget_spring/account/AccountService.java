@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.easybudget.easybudget_spring.entry.EntryService;
+import com.easybudget.easybudget_spring.user.User;
+import com.easybudget.easybudget_spring.user.UserService;
 
 @Transactional
 @Service
@@ -21,45 +23,62 @@ public class AccountService {
     @Autowired
     public EntryService entryService;
 
-    public List<Account> getAllAccounts() {
-        return accountRepository.findAll();
+    @Autowired
+    private UserService userService;
+
+    public List<AccountDto> getAllAccounts() {
+        User currentUser = userService.getCurrentAuthenticatedUser();
+        List<Account> accounts = accountRepository.findAllByUser(currentUser);
+        return accounts.stream()
+                .map(AccountMapper::toDto)
+                .toList();
     }
 
     public BigDecimal getTotalBalance() {
-        List<Account> accounts = accountRepository.findAll();
+        List<AccountDto> accountDtos = getAllAccounts();
         BigDecimal totalBalance = BigDecimal.ZERO;
 
-        for (Account account : accounts) {
-            totalBalance = totalBalance.add(account.getBalance());
+        for (AccountDto accountDto : accountDtos) {
+            totalBalance = totalBalance.add(accountDto.getBalance());
         }
         return totalBalance;
     }
 
-    public Account getAccountById(Long id) {
-        return accountCheckService.findAccountById(id);
+    public AccountDto getAccountById(Long accountId) {
+        Account account = accountCheckService.findAccountById(accountId);
+        return AccountMapper.toDto(account);
     }
 
-    public Account addAccount(Account account) {
-        // New Account should start with 0 balance!
-        account.setBalance(BigDecimal.ZERO);
+    public AccountDto addAccount(String accountName) {
+        User currentUser = userService.getCurrentAuthenticatedUser();
+        Account newAccount = Account.builder()
+                .name(accountName)
+                // New Account should start with 0 balance!
+                .balance(BigDecimal.ZERO)
+                .user(currentUser)
+                .build();
 
-        return accountRepository.save(account);
+        accountRepository.save(newAccount);
+
+        return AccountMapper.toDto(newAccount);
     }
 
-    public Account updateAccount(Long id, Account account) {
-        Account existingAccount = accountCheckService.findAccountById(id);
+    public AccountDto updateAccount(Long accountId, String newAccountName) {
+        Account existingAccount = accountCheckService.findAccountById(accountId);
 
-        existingAccount.setName(account.getName());
+        existingAccount.setName(newAccountName);
         // Don't let users manually edit Account's Balance
         // Always update Account's balance from Entry
         // existingAccount.setBalance(Account.getBalance());
-        return accountRepository.save(existingAccount);
+        accountRepository.save(existingAccount);
+
+        return AccountMapper.toDto(existingAccount);
     }
 
-    public void deleteAccount(Long id) {
-        accountCheckService.findAccountById(id);
+    public void deleteAccount(Long accountId) {
+        accountCheckService.findAccountById(accountId);
 
-        entryService.deleteAllEntriesByAccountId(id);
-        accountRepository.deleteById(id);
+        entryService.deleteAllEntriesByAccountId(accountId);
+        accountRepository.deleteById(accountId);
     }
 }

@@ -39,7 +39,7 @@ public class User {
     private Role role;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "auth_provider", nullable = false)
     private AuthProvider authProvider;
     
 }

@@ -30,11 +30,17 @@ public class AuthController {
 
     @PostMapping("/signin")
     public String authenticateUser(@RequestBody LoginRequest loginRequest) {
+        // To understand the flow
+        System.out.println("Inside AuthController: authenticateUser");
+
+        // This will run loadUserByUsername method in CustomUserDetailsService
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        // this will actually get email because i created the object with an email above
+        // this "getUsername" returns the userId, because inside loadUserByUsername,
+        // userId was returned
         return jwtUtils.generateToken(userDetails.getUsername());
     }
 
@@ -44,6 +50,7 @@ public class AuthController {
     // Fix this: wrong inputs -> no email/ no password/ no username
     @PostMapping("/signup")
     public ResponseEntity<String> registerUser(@RequestBody RegisterRequest registerRequest) {
+        System.out.println("Inside AuthController: registerUser");
         if (userService.existsByEmail(registerRequest.getEmail())) {
             return new ResponseEntity<>("Error: Email already exists!", HttpStatus.CONFLICT);
         }

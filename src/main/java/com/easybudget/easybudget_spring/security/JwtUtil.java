@@ -22,16 +22,16 @@ public class JwtUtil {
         this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
     // Generate JWT token
-    public String generateToken(String email) {
+    public String generateToken(String userId) {
         return Jwts.builder()
-                .subject(email)
+                .subject(userId)
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(key)
                 .compact();
     }
-    // Get email from JWT token
-    public String getEmailFromToken(String token) {
+    // Get id from JWT token
+    public String getUserIdFromToken(String token) {
         return Jwts.parser()
                 .verifyWith(key).build()
                 .parseSignedClaims(token)
