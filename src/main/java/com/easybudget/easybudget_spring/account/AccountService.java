@@ -49,10 +49,10 @@ public class AccountService {
         return AccountMapper.toDto(account);
     }
 
-    public AccountDto addAccount(String accountName) {
+    public AccountDto addAccount(CreateAccountRequestDto accountRequest) {
         User currentUser = userService.getCurrentAuthenticatedUser();
         Account newAccount = Account.builder()
-                .name(accountName)
+                .name(accountRequest.getName())
                 // New Account should start with 0 balance!
                 .balance(BigDecimal.ZERO)
                 .user(currentUser)
@@ -63,10 +63,10 @@ public class AccountService {
         return AccountMapper.toDto(newAccount);
     }
 
-    public AccountDto updateAccount(Long accountId, String newAccountName) {
+    public AccountDto updateAccount(Long accountId, UpdateAccountRequestDto accountRequest) {
         Account existingAccount = accountCheckService.findAccountById(accountId);
 
-        existingAccount.setName(newAccountName);
+        existingAccount.setName(accountRequest.getName());
         // Don't let users manually edit Account's Balance
         // Always update Account's balance from Entry
         // existingAccount.setBalance(Account.getBalance());
@@ -75,10 +75,12 @@ public class AccountService {
         return AccountMapper.toDto(existingAccount);
     }
 
-    public void deleteAccount(Long accountId) {
+    public String deleteAccount(Long accountId) {
         accountCheckService.findAccountById(accountId);
 
         entryService.deleteAllEntriesByAccountId(accountId);
         accountRepository.deleteById(accountId);
+
+        return "Account with ID " + accountId + " has been deleted successfully.";
     }
 }

@@ -29,7 +29,7 @@ public class AuthController {
     JwtUtil jwtUtils;
 
     @PostMapping("/signin")
-    public String authenticateUser(@RequestBody LoginRequest loginRequest) {
+    public String authenticateUser(@RequestBody LoginRequestDto loginRequest) {
         // To understand the flow
         System.out.println("Inside AuthController: authenticateUser");
 
@@ -49,15 +49,16 @@ public class AuthController {
     // on Postman as Unauthorized
     // Fix this: wrong inputs -> no email/ no password/ no username
     @PostMapping("/signup")
-    public ResponseEntity<String> registerUser(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<String> registerUser(@RequestBody RegisterRequestDto registerRequest) {
+        
         System.out.println("Inside AuthController: registerUser");
-        if (userService.existsByEmail(registerRequest.getEmail())) {
-            return new ResponseEntity<>("Error: Email already exists!", HttpStatus.CONFLICT);
+
+        try {
+            String result = userService.createUser(registerRequest);
+            return new ResponseEntity<>(result, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         }
-
-        userService.createUser(registerRequest);
-
-        return new ResponseEntity<>("New User created successfully!", HttpStatus.CREATED);
     }
 
 }

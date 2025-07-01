@@ -10,12 +10,14 @@ import java.util.Collections;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
+    
+    // Using UserService here will cause circular dependency issues
     @Autowired
     private UserRepository userRepository;
 
     // There is no loadUserByEmail method in UserDetailsService, so I used
     // loadUserByUsername
-    // but it acutally loads the user by Id
+    // but it acutally loads the user by email
     // This UserDetails returns as the authentication's principal when the user is
     // authenticating (inside signin controller)
     // This is a mandatory method for authenticating users with Spring Security
@@ -23,7 +25,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws NotFoundException {
         System.out.println("Inside CustomUserDetailsService: loadUserByUsername with email: " + email);
 
-        User user = userRepository.findByEmail(email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User Not Found with email: " + email));
 
         if (user == null) {
             throw new NotFoundException("User Not Found with email: " + email);
@@ -44,7 +47,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User Not Found with id: " + id));
-
+        
         // Return UserDetails with userId
         // Improve: Create and use CustomUserDetails class that implements
         // UserDetails interface
