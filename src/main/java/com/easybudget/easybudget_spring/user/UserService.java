@@ -21,7 +21,7 @@ public class UserService {
     public String createUser(RegisterRequestDto registerRequest) {
 
         if (existsByEmail(registerRequest.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new IllegalArgumentException("Email already exists! Please login.");
         }
 
         Role role = registerRequest.getRole() != null ? registerRequest.getRole() : Role.USER;
