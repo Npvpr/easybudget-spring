@@ -1,7 +1,6 @@
 package com.easybudget.easybudget_spring.guest;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -86,7 +85,7 @@ public class GuestService {
         entryService.createEntry(new CreateEntryRequestDto(Type.INCOME, masterCardAccount.getId(),
                 depositCategory.getId(), BigDecimal.valueOf(500), LocalDateTime.of(currentYear, currentMonth, 2, 0, 0),
                 "Deposit to Master Card account"));
-        entryService.createEntry(new CreateEntryRequestDto(Type.INCOME, cashAccount.getId(), foodCategory.getId(),
+        entryService.createEntry(new CreateEntryRequestDto(Type.INCOME, cashAccount.getId(), depositCategory.getId(),
                 BigDecimal.valueOf(600), LocalDateTime.of(currentYear, currentMonth, 3, 0, 0), "Cash deposit"));
         entryService.createEntry(new CreateEntryRequestDto(Type.OUTCOME, visaAccount.getId(), foodCategory.getId(),
                 BigDecimal.valueOf(50), LocalDateTime.of(currentYear, currentMonth, 4, 0, 0), "Food expenses"));

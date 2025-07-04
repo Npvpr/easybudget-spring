@@ -69,7 +69,7 @@ public class EntryService {
         // check if the account and category exist
         Account connectedAccount = accountCheckService.findAccountById(createEntryRequestDto.getAccountId());
         Category connectedCategory = categoryCheckService.findCategoryById(createEntryRequestDto.getCategoryId());
-        
+
         // update the connected account with the new entry's cost
         Entry newEntry = Entry.builder()
                 .type(createEntryRequestDto.getType())
@@ -79,7 +79,7 @@ public class EntryService {
                 .cost(createEntryRequestDto.getCost())
                 .dateTime(createEntryRequestDto.getDateTime())
                 .description(createEntryRequestDto.getDescription())
-                .build();                
+                .build();
         accountBalanceService.updateAccountBalanceOfNewEntry(newEntry, connectedAccount);
 
         Entry savedEntry = entryRepository.save(newEntry);
@@ -145,7 +145,10 @@ public class EntryService {
         Category deletingCategory = categoryCheckService.findCategoryById(categoryId);
         String categoryName = deletingCategory.getName();
 
-        Specification<Entry> spec = Specification.where(EntrySpecificatioin.hasCategoryById(categoryId));
+        User currentUser = userService.getCurrentAuthenticatedUser();
+
+        Specification<Entry> spec = Specification.where(EntrySpecification.hasCategoryById(categoryId))
+                .and(EntrySpecification.belongsToUser(currentUser));
         List<Entry> entries = entryRepository.findAll(spec);
         accountBalanceService.updateAccountBalanceOfDeletedCategory(entries);
 
@@ -161,8 +164,11 @@ public class EntryService {
         LocalDateTime endDateTime = LocalDateTime.of(
                 year, month, YearMonth.of(year, month).lengthOfMonth(), 23, 59, 59);
 
+        User currentUser = userService.getCurrentAuthenticatedUser();
+
         Specification<Entry> spec = Specification
-                .where(EntrySpecificatioin.hasDateTimeBetween(startDateTime, endDateTime));
+                .where(EntrySpecification.hasDateTimeBetween(startDateTime, endDateTime))
+                .and(EntrySpecification.belongsToUser(currentUser));
 
         List<Entry> entries = entryRepository.findAll(spec, Sort.by(Sort.Direction.ASC, "dateTime"));
 
@@ -214,8 +220,11 @@ public class EntryService {
                     year, 12, 31, 23, 59, 59);
         }
 
+        User currentUser = userService.getCurrentAuthenticatedUser();
+
         Specification<Entry> spec = Specification
-                .where(EntrySpecificatioin.hasDateTimeBetween(startDateTime, endDateTime));
+                .where(EntrySpecification.hasDateTimeBetween(startDateTime, endDateTime))
+                .and(EntrySpecification.belongsToUser(currentUser));
 
         List<Entry> entries = entryRepository.findAll(spec);
 
@@ -295,11 +304,14 @@ public class EntryService {
             LocalDateTime startDate,
             LocalDateTime endDate, String sortField, String sortOrder) {
 
+        User currentUser = userService.getCurrentAuthenticatedUser();
+
         Specification<Entry> spec = Specification
-                .where(EntrySpecificatioin.hasType(type))
-                .and(EntrySpecificatioin.hasAccountById(accountId))
-                .and(EntrySpecificatioin.hasCategoryById(categoryId))
-                .and(EntrySpecificatioin.hasDateTimeBetween(startDate, endDate));
+                .where(EntrySpecification.hasType(type))
+                .and(EntrySpecification.belongsToUser(currentUser))
+                .and(EntrySpecification.hasAccountById(accountId))
+                .and(EntrySpecification.hasCategoryById(categoryId))
+                .and(EntrySpecification.hasDateTimeBetween(startDate, endDate));
         ;
 
         // This makes DateTime Descending Order as default, even if frontend requests

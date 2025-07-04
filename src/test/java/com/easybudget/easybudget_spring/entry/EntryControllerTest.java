@@ -1,6 +1,5 @@
 package com.easybudget.easybudget_spring.entry;
 
-import com.easybudget.easybudget_spring.account.Account;
 import com.easybudget.easybudget_spring.account.AccountDto;
 import com.easybudget.easybudget_spring.account.AccountService;
 import com.easybudget.easybudget_spring.account.CreateAccountRequestDto;

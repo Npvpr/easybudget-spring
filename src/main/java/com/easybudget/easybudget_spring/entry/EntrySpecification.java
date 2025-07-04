@@ -4,7 +4,14 @@ import java.time.LocalDateTime;
 
 import org.springframework.data.jpa.domain.Specification;
 
-public class EntrySpecificatioin {
+import com.easybudget.easybudget_spring.user.User;
+
+public class EntrySpecification {
+
+    public static Specification<Entry> belongsToUser(User user) {
+        return (root, query, criteriaBuilder) -> user == null ? null
+                : criteriaBuilder.equal(root.get("user"), user);
+    }
 
     public static Specification<Entry> hasType(Type type) {
         return (root, query, criteriaBuilder) -> type == null ? null
