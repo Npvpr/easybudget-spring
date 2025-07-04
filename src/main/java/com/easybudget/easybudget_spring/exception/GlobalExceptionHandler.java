@@ -1,6 +1,8 @@
 package com.easybudget.easybudget_spring.exception;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -23,9 +25,8 @@ public class GlobalExceptionHandler {
     // 2. When connected with other models: ID that doesn't exist
 
     @ExceptionHandler(NotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleNotFoundException(NotFoundException ex) {
-        return ex.getMessage();
+    public ResponseEntity<String> handleNotFoundException(NotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     // ConstraintViolationException are not handled automatically and require manual
@@ -46,12 +47,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-            errors.put(error.getField(), error.getDefaultMessage())
-        );
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<String> handleValidationException(MethodArgumentNotValidException ex) {
+        String error = ex.getBindingResult().getFieldError().getDefaultMessage();
+        // List<String> errors = new ArrayList<>();
+        // getFieldErrors().forEach(error ->
+        //     errors.add(error.getDefaultMessage())
+        // );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
 }

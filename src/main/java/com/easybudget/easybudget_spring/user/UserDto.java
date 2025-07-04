@@ -7,7 +7,10 @@ import lombok.Getter;
 // is thrown when trying to return this DTO in a controller.
 @Getter
 @Builder
-public class UserInfosDto {
+public class UserDto {
+    private Long id;
     private String email;
     private String username;
+    private Role role;
+    private AuthProvider authProvider;
 }

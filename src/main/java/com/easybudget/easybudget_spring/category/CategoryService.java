@@ -70,7 +70,7 @@ public class CategoryService {
         entryService.deleteAllEntriesByCategoryId(categoryId);
         categoryRepository.deleteById(categoryId);
 
-        return categoryName + " Category deleted successfully";
+        return categoryName + " Category deleted successfully.";
     }
 
 }

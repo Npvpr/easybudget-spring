@@ -65,28 +65,44 @@ public class GuestService {
         // so that they can immediately start testing all the features
         // Repopulate
 
-        accountService.createAccount(new CreateAccountRequestDto("Visa Card"));
-        accountService.createAccount(new CreateAccountRequestDto("Master Card"));
-        accountService.createAccount(new CreateAccountRequestDto("Cash"));
+        AccountDto visaAccount = accountService.createAccount(new CreateAccountRequestDto("Visa Card"));
+        AccountDto masterCardAccount = accountService.createAccount(new CreateAccountRequestDto("Master Card"));
+        AccountDto cashAccount = accountService.createAccount(new CreateAccountRequestDto("Cash"));
 
-        categoryService.createCategory(new CreateCategoryRequestDto("Salary"));
-        categoryService.createCategory(new CreateCategoryRequestDto("Deposit"));
-        categoryService.createCategory(new CreateCategoryRequestDto("Food"));
-        categoryService.createCategory(new CreateCategoryRequestDto("Transport"));
-        categoryService.createCategory(new CreateCategoryRequestDto("Entertainment"));
+        CategoryDto salaryCategory = categoryService.createCategory(new CreateCategoryRequestDto("Salary"));
+        CategoryDto depositCategory = categoryService.createCategory(new CreateCategoryRequestDto("Deposit"));
+        CategoryDto foodCategory = categoryService.createCategory(new CreateCategoryRequestDto("Food"));
+        CategoryDto transportCategory = categoryService.createCategory(new CreateCategoryRequestDto("Transport"));
+        CategoryDto entertainmentCategory = categoryService
+                .createCategory(new CreateCategoryRequestDto("Entertainment"));
 
         // get current month
         int currentMonth = java.time.LocalDate.now().getMonthValue();
         int currentYear = java.time.LocalDate.now().getYear();
 
-        entryService.createEntry(new CreateEntryRequestDto(Type.INCOME, 1L, 1L, BigDecimal.valueOf(3000), LocalDateTime.of(currentYear, currentMonth, 1, 0, 0), "Salary for the month"));
-        entryService.createEntry(new CreateEntryRequestDto(Type.INCOME, 2L, 2L, BigDecimal.valueOf(500), LocalDateTime.of(currentYear, currentMonth, 1, 0, 0), "Deposit to Master Card account"));
-        entryService.createEntry(new CreateEntryRequestDto(Type.INCOME, 3L, 2L, BigDecimal.valueOf(600), LocalDateTime.of(currentYear, currentMonth, 1, 0, 0), "Cash deposit"));
-        entryService.createEntry(new CreateEntryRequestDto(Type.OUTCOME, 1L, 3L, BigDecimal.valueOf(50), LocalDateTime.of(currentYear, currentMonth, 2, 0, 0), "Food expenses"));
-        entryService.createEntry(new CreateEntryRequestDto(Type.OUTCOME, 1L, 4L, BigDecimal.valueOf(20), LocalDateTime.of(currentYear, currentMonth, 3, 0, 0), "Transport expenses"));
-        entryService.createEntry(new CreateEntryRequestDto(Type.OUTCOME, 1L, 5L, BigDecimal.valueOf(100), LocalDateTime.of(currentYear, currentMonth, 4, 0, 0), "Entertainment expenses"));
-        entryService.createEntry(new CreateEntryRequestDto(Type.OUTCOME, 2L, 3L, BigDecimal.valueOf(60), LocalDateTime.of(currentYear, currentMonth, 5, 0, 0), "Food expenses on Master Card"));
-        entryService.createEntry(new CreateEntryRequestDto(Type.OUTCOME, 3L, 4L, BigDecimal.valueOf(30), LocalDateTime.of(currentYear, currentMonth, 6, 0, 0), "Transport expenses with Cash"));
-        entryService.createEntry(new CreateEntryRequestDto(Type.OUTCOME, 2L, 5L, BigDecimal.valueOf(150), LocalDateTime.of(currentYear, currentMonth, 7, 0, 0), "Entertainment expenses on Master Card"));
+        entryService.createEntry(new CreateEntryRequestDto(Type.INCOME, visaAccount.getId(), salaryCategory.getId(),
+                BigDecimal.valueOf(3000), LocalDateTime.of(currentYear, currentMonth, 1, 0, 0),
+                "Salary for the month"));
+        entryService.createEntry(new CreateEntryRequestDto(Type.INCOME, masterCardAccount.getId(),
+                depositCategory.getId(), BigDecimal.valueOf(500), LocalDateTime.of(currentYear, currentMonth, 2, 0, 0),
+                "Deposit to Master Card account"));
+        entryService.createEntry(new CreateEntryRequestDto(Type.INCOME, cashAccount.getId(), foodCategory.getId(),
+                BigDecimal.valueOf(600), LocalDateTime.of(currentYear, currentMonth, 3, 0, 0), "Cash deposit"));
+        entryService.createEntry(new CreateEntryRequestDto(Type.OUTCOME, visaAccount.getId(), foodCategory.getId(),
+                BigDecimal.valueOf(50), LocalDateTime.of(currentYear, currentMonth, 4, 0, 0), "Food expenses"));
+        entryService.createEntry(new CreateEntryRequestDto(Type.OUTCOME, visaAccount.getId(), transportCategory.getId(),
+                BigDecimal.valueOf(20), LocalDateTime.of(currentYear, currentMonth, 5, 0, 0), "Transport expenses"));
+        entryService.createEntry(new CreateEntryRequestDto(Type.OUTCOME, visaAccount.getId(),
+                entertainmentCategory.getId(), BigDecimal.valueOf(100),
+                LocalDateTime.of(currentYear, currentMonth, 6, 0, 0), "Entertainment expenses"));
+        entryService.createEntry(new CreateEntryRequestDto(Type.OUTCOME, masterCardAccount.getId(),
+                foodCategory.getId(), BigDecimal.valueOf(60), LocalDateTime.of(currentYear, currentMonth, 7, 0, 0),
+                "Food expenses on Master Card"));
+        entryService.createEntry(new CreateEntryRequestDto(Type.OUTCOME, cashAccount.getId(), transportCategory.getId(),
+                BigDecimal.valueOf(30), LocalDateTime.of(currentYear, currentMonth, 8, 0, 0),
+                "Transport expenses with Cash"));
+        entryService.createEntry(new CreateEntryRequestDto(Type.OUTCOME, masterCardAccount.getId(),
+                entertainmentCategory.getId(), BigDecimal.valueOf(150),
+                LocalDateTime.of(currentYear, currentMonth, 9, 0, 0), "Entertainment expenses on Master Card"));
     }
 }

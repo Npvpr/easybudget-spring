@@ -82,6 +82,6 @@ public class AccountService {
         entryService.deleteAllEntriesByAccountId(accountId);
         accountRepository.deleteById(accountId);
 
-        return accountName + " Account deleted successfully";
+        return accountName + " Account deleted successfully.";
     }
 }

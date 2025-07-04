@@ -43,18 +43,19 @@ public class EntryController {
     }
 
     @PutMapping("/{entryId}")
-    public ResponseEntity<EntryDto> updateEntry(@PathVariable Long entryId, @Valid @RequestBody UpdateEntryRequestDto updateEntryRequestDto) {
+    public ResponseEntity<EntryDto> updateEntry(@PathVariable Long entryId,
+            @Valid @RequestBody UpdateEntryRequestDto updateEntryRequestDto) {
         return new ResponseEntity<>(entryService.updateEntry(entryId, updateEntryRequestDto), HttpStatus.OK);
     }
 
     @DeleteMapping("/{entryId}")
-    public ResponseEntity<Void> deleteEntry(@PathVariable Long entryId) {
-        entryService.deleteEntry(entryId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<String> deleteEntry(@PathVariable Long entryId) {
+        return new ResponseEntity<>(entryService.deleteEntry(entryId), HttpStatus.OK);
     }
 
     @GetMapping("/monthEntry")
-    public ResponseEntity<Map<String, Object>> getEntriesForMonthEntry(@RequestParam int year, @RequestParam int month) {
+    public ResponseEntity<Map<String, Object>> getEntriesForMonthEntry(@RequestParam int year,
+            @RequestParam int month) {
         return new ResponseEntity<>(entryService.filterEntriesForMonthEntry(year, month), HttpStatus.OK);
     }
 

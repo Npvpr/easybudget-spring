@@ -196,7 +196,7 @@ class UserServiceTest {
         SecurityContextHolder.getContext().setAuthentication(auth);
         when(userRepository.findById(100L)).thenReturn(Optional.of(user));
 
-        UserInfosDto result = userService.getUserInfos();
+        UserDto result = userService.getUserInfos();
         assertEquals("info@test.com", result.getEmail());
         assertEquals("InfoUser", result.getUsername());
     }

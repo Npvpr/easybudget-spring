@@ -90,22 +90,25 @@ public class UserService {
     public User getCurrentAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new NotFoundException("No authenticated user found");
+            throw new NotFoundException("No authenticated user found.");
         }
         System.out.println("Authentication: " + authentication);
 
         Long userId = Long.valueOf(authentication.getName());
         return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found."));
     }
 
-    public UserInfosDto getUserInfos() {
+    public UserDto getUserInfos() {
 
         User user = getCurrentAuthenticatedUser();
 
-        return UserInfosDto.builder()
+        return UserDto.builder()
+                .id(user.getId())
                 .email(user.getEmail())
                 .username(user.getUsername())
+                .role(user.getRole())
+                .authProvider(user.getAuthProvider())
                 .build();
     }
 }

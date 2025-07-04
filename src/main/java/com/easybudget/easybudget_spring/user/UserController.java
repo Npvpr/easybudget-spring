@@ -15,7 +15,7 @@ public class UserController {
     private UserService userService;
     
     @GetMapping("/user")
-    public ResponseEntity<UserInfosDto> getUserInfos() {
+    public ResponseEntity<UserDto> getUserInfos() {
         return new ResponseEntity<>(userService.getUserInfos(), HttpStatus.OK);
     }
 }

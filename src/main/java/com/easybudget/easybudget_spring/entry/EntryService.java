@@ -125,7 +125,7 @@ public class EntryService {
 
         entryRepository.deleteById(entryId);
 
-        return "Entry with ID " + entryId + " deleted successfully";
+        return "Entry with ID " + entryId + " deleted successfully.";
     }
 
     public String deleteAllEntriesByAccountId(Long accountId) {
@@ -136,7 +136,7 @@ public class EntryService {
 
         entryRepository.deleteByAccountId(accountId);
 
-        return accountName + " Account's all entries deleted successfully";
+        return accountName + " Account's all entries deleted successfully.";
     }
 
     public String deleteAllEntriesByCategoryId(Long categoryId) {
@@ -151,7 +151,7 @@ public class EntryService {
 
         entryRepository.deleteByCategoryId(categoryId);
 
-        return categoryName + " Category's all entries deleted successfully";
+        return categoryName + " Category's all entries deleted successfully.";
     }
 
     public Map<String, Object> filterEntriesForMonthEntry(int year, int month) {
