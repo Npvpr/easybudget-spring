@@ -4,23 +4,24 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.easybudget.easybudget_spring.EasybudgetSpringApplication;
 import com.easybudget.easybudget_spring.account.Account;
 import com.easybudget.easybudget_spring.account.AccountBalanceService;
 import com.easybudget.easybudget_spring.account.AccountCheckService;
+import com.easybudget.easybudget_spring.category.Category;
 import com.easybudget.easybudget_spring.category.CategoryCheckService;
+import com.easybudget.easybudget_spring.user.User;
+import com.easybudget.easybudget_spring.user.UserService;
 
 // @Transactional is an annotation in Spring that helps manage database transactions. 
 // When you do multiple actions in a database (like save, update, or delete), 
@@ -30,8 +31,6 @@ import com.easybudget.easybudget_spring.category.CategoryCheckService;
 @Transactional
 @Service
 public class EntryService {
-
-    private static final Logger log = LoggerFactory.getLogger(EasybudgetSpringApplication.class);
 
     @Autowired
     private EntryRepository entryRepository;
@@ -48,71 +47,111 @@ public class EntryService {
     @Autowired
     private CategoryCheckService categoryCheckService;
 
-    public List<Entry> getAllEntries() {
-        return entryRepository.findAll();
+    @Autowired
+    private UserService userService;
+
+    public List<EntryDto> getAllEntries() {
+        User currentUser = userService.getCurrentAuthenticatedUser();
+        List<Entry> entries = entryRepository.findAllByUser(currentUser);
+        return entries.stream()
+                .map(EntryMapper::toDto)
+                .toList();
     }
 
-    public Entry getEntryById(Long id) {
-        return entryCheckService.findEntryById(id);
+    public EntryDto getEntryById(Long entryId) {
+        Entry entry = entryCheckService.findEntryById(entryId);
+        return EntryMapper.toDto(entry);
     }
 
-    public Entry addEntry(Entry entry) {
-        Account connectedAccount = accountCheckService.findAccountById(entry.getAccount().getId());
-        accountBalanceService.updateAccountBalanceOfNewEntry(entry, connectedAccount);
+    public EntryDto createEntry(CreateEntryRequestDto createEntryRequestDto) {
+        User currentUser = userService.getCurrentAuthenticatedUser();
 
-        categoryCheckService.findCategoryById(entry.getCategory().getId());
+        // check if the account and category exist
+        Account connectedAccount = accountCheckService.findAccountById(createEntryRequestDto.getAccountId());
+        Category connectedCategory = categoryCheckService.findCategoryById(createEntryRequestDto.getCategoryId());
+        
+        // update the connected account with the new entry's cost
+        Entry newEntry = Entry.builder()
+                .type(createEntryRequestDto.getType())
+                .user(currentUser)
+                .account(connectedAccount)
+                .category(connectedCategory)
+                .cost(createEntryRequestDto.getCost())
+                .dateTime(createEntryRequestDto.getDateTime())
+                .description(createEntryRequestDto.getDescription())
+                .build();                
+        accountBalanceService.updateAccountBalanceOfNewEntry(newEntry, connectedAccount);
 
-        // Wrong Account's name will not be saved because only account_id is checked and
-        // recorded together, but wrong account's name will be returned back here
-        entryRepository.save(entry);
+        Entry savedEntry = entryRepository.save(newEntry);
 
-        // This is not essential, I just want to return an Entry with updated Account's
-        // balance
-        // This method can also fix Entries entering with wrong Account/Category
-        // datas(Rigth IDs)
-        // By returning correct datas
-        entry.setAccount(accountCheckService.findAccountById(entry.getAccount().getId()));
-        return entry;
+        return EntryMapper.toDto(savedEntry);
     }
 
-    public Entry updateEntry(Long id, Entry entry) {
+    public EntryDto updateEntry(Long entryId, UpdateEntryRequestDto updateEntryRequestDto) {
         // if cost changed, update account again
-        Entry existingEntry = entryCheckService.findEntryById(id);
-        Account newAccount = accountCheckService.findAccountById(entry.getAccount().getId());
-        categoryCheckService.findCategoryById(entry.getCategory().getId());
+        Entry oldEntry = entryCheckService.findEntryById(entryId);
 
-        accountBalanceService.updateAccountBalanceOfOldEntry(existingEntry, entry, newAccount);
+        // check if the account and category exist
+        Account newAccount = accountCheckService.findAccountById(updateEntryRequestDto.getAccountId());
+        Category connectedCategory = categoryCheckService.findCategoryById(updateEntryRequestDto.getCategoryId());
 
-        existingEntry.setType(entry.getType());
-        existingEntry.setAccount(entry.getAccount());
-        existingEntry.setCategory(entry.getCategory());
-        existingEntry.setCost(entry.getCost());
-        existingEntry.setDateTime(entry.getDateTime());
-        existingEntry.setDescription(entry.getDescription());
-        return entryRepository.save(existingEntry);
+        // update the existing/old entry with the new values
+        Entry newEntry = Entry.builder()
+                .id(entryId)
+                .type(updateEntryRequestDto.getType())
+                .account(newAccount)
+                .category(connectedCategory)
+                .cost(updateEntryRequestDto.getCost())
+                .dateTime(updateEntryRequestDto.getDateTime())
+                .description(updateEntryRequestDto.getDescription())
+                .build();
+        accountBalanceService.updateAccountBalanceOfOldEntry(oldEntry, newEntry, newAccount);
+
+        oldEntry.setType(newEntry.getType());
+        oldEntry.setAccount(newEntry.getAccount());
+        oldEntry.setCategory(newEntry.getCategory());
+        oldEntry.setCost(newEntry.getCost());
+        oldEntry.setDateTime(newEntry.getDateTime());
+        oldEntry.setDescription(newEntry.getDescription());
+
+        Entry savedEntry = entryRepository.save(oldEntry);
+
+        return EntryMapper.toDto(savedEntry);
     }
 
-    public void deleteEntry(Long id) {
-        Entry entry = entryCheckService.findEntryById(id);
-        accountBalanceService.updateAccountBalanceOfDeletedEntry(entry);
+    public String deleteEntry(Long entryId) {
+        Entry deletingEntry = entryCheckService.findEntryById(entryId);
+        accountBalanceService.updateAccountBalanceOfDeletedEntry(deletingEntry);
 
-        entryRepository.deleteById(id);
+        entryRepository.deleteById(entryId);
+
+        return "Entry with ID " + entryId + " deleted successfully";
     }
 
-    public void deleteAllEntriesByAccountId(Long id) {
+    public String deleteAllEntriesByAccountId(Long accountId) {
         // related account will be deleted so account balance
         // will not be required to update
-        entryRepository.deleteByAccountId(id);
+        Account deletingAccount = accountCheckService.findAccountById(accountId);
+        String accountName = deletingAccount.getName();
+
+        entryRepository.deleteByAccountId(accountId);
+
+        return accountName + " Account's all entries deleted successfully";
     }
 
-    public void deleteAllEntriesByCategoryId(Long id) {
+    public String deleteAllEntriesByCategoryId(Long categoryId) {
         // update all accounts related to all entries
         // related to the deleted category
-        Specification<Entry> spec = Specification.where(EntrySpecificatioin.hasCategoryById(id));
+        Category deletingCategory = categoryCheckService.findCategoryById(categoryId);
+        String categoryName = deletingCategory.getName();
+
+        Specification<Entry> spec = Specification.where(EntrySpecificatioin.hasCategoryById(categoryId));
         List<Entry> entries = entryRepository.findAll(spec);
         accountBalanceService.updateAccountBalanceOfDeletedCategory(entries);
 
-        entryRepository.deleteByCategoryId(id);
+        entryRepository.deleteByCategoryId(categoryId);
+
+        return categoryName + " Category's all entries deleted successfully";
     }
 
     public Map<String, Object> filterEntriesForMonthEntry(int year, int month) {
@@ -131,6 +170,8 @@ public class EntryService {
         BigDecimal totalOutcome = BigDecimal.ZERO;
         BigDecimal totalBalance = BigDecimal.ZERO;
 
+        List<EntryDto> entryDtos = new ArrayList<>();
+
         for (Entry entry : entries) {
             if (entry.getType() == Type.INCOME) {
                 totalIncome = totalIncome.add(entry.getCost());
@@ -139,11 +180,12 @@ public class EntryService {
                 totalOutcome = totalOutcome.add(entry.getCost());
                 totalBalance = totalBalance.subtract(entry.getCost());
             }
+            entryDtos.add(EntryMapper.toDto(entry));
         }
 
         Map<String, Object> result = new HashMap<>();
 
-        result.put("entries", entries);
+        result.put("entries", entryDtos);
         result.put("totalIncome", totalIncome);
         result.put("totalOutcome", totalOutcome);
         result.put("totalBalance", totalBalance);
@@ -270,16 +312,19 @@ public class EntryService {
         List<Entry> entries = entryRepository.findAll(spec, sort);
         BigDecimal totalCost = BigDecimal.ZERO;
 
+        List<EntryDto> entryDtos = new ArrayList<>();
+
         for (Entry entry : entries) {
             if (entry.getType() == Type.INCOME) {
                 totalCost = totalCost.add(entry.getCost());
             } else {
                 totalCost = totalCost.subtract(entry.getCost());
             }
+            entryDtos.add(EntryMapper.toDto(entry));
         }
 
         Map<String, Object> result = new HashMap<>();
-        result.put("entries", entries);
+        result.put("entries", entryDtos);
         result.put("totalCost", totalCost);
 
         return result;

@@ -1,16 +1,27 @@
 package com.easybudget.easybudget_spring.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.easybudget.easybudget_spring.auth.LoginRequestDto;
 import com.easybudget.easybudget_spring.auth.RegisterRequestDto;
 import com.easybudget.easybudget_spring.exception.NotFoundException;
+import com.easybudget.easybudget_spring.security.JwtUtil;
 
 @Service
 public class UserService {
+
+    @Autowired
+    AuthenticationManager authenticationManager;
+
+    @Autowired
+    JwtUtil jwtUtils;
 
     @Autowired
     PasswordEncoder passwordEncoder;
@@ -39,9 +50,27 @@ public class UserService {
 
         userRepository.save(newUser);
 
-        // I need to connect with login here
-        // So that users don't need to login again after signup
-        return "New User created successfully!";
+        // Connect with login to return JWT token
+        LoginRequestDto loginRequestDto = LoginRequestDto.builder()
+                .email(registerRequest.getEmail())
+                .password(registerRequest.getPassword())
+                .build();
+        return authenticateUser(loginRequestDto);
+    }
+
+    // Check if user exists
+    // Authenticate user with email and password combination
+    // If user exists, generate and return JWT token
+    public String authenticateUser(LoginRequestDto loginRequestDto){
+        // This will run loadUserByUsername method in CustomUserDetailsService
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword()));
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        // this "getUsername" returns the userId, because inside loadUserByUsername,
+        // userId was returned
+        return jwtUtils.generateToken(userDetails.getUsername());
     }
 
     public User findById(Long id) {

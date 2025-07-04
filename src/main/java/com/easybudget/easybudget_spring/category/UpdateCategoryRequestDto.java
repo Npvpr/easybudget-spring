@@ -1,4 +1,4 @@
-package com.easybudget.easybudget_spring.account;
+package com.easybudget.easybudget_spring.category;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CreateAccountRequestDto {
-    @NotBlank(message = "Account name is required.")
+public class UpdateCategoryRequestDto {
+    @NotBlank(message = "Category name is required.")
     private String name;
 }

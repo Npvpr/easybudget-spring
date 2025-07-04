@@ -49,7 +49,7 @@ public class AccountService {
         return AccountMapper.toDto(account);
     }
 
-    public AccountDto addAccount(CreateAccountRequestDto accountRequest) {
+    public AccountDto createAccount(CreateAccountRequestDto accountRequest) {
         User currentUser = userService.getCurrentAuthenticatedUser();
         Account newAccount = Account.builder()
                 .name(accountRequest.getName())
@@ -58,9 +58,9 @@ public class AccountService {
                 .user(currentUser)
                 .build();
 
-        accountRepository.save(newAccount);
+        Account savedAccount = accountRepository.save(newAccount);
 
-        return AccountMapper.toDto(newAccount);
+        return AccountMapper.toDto(savedAccount);
     }
 
     public AccountDto updateAccount(Long accountId, UpdateAccountRequestDto accountRequest) {
@@ -70,17 +70,18 @@ public class AccountService {
         // Don't let users manually edit Account's Balance
         // Always update Account's balance from Entry
         // existingAccount.setBalance(Account.getBalance());
-        accountRepository.save(existingAccount);
+        Account savedAccount = accountRepository.save(existingAccount);
 
-        return AccountMapper.toDto(existingAccount);
+        return AccountMapper.toDto(savedAccount);
     }
 
     public String deleteAccount(Long accountId) {
-        accountCheckService.findAccountById(accountId);
+        Account deletingAccount = accountCheckService.findAccountById(accountId);
+        String accountName = deletingAccount.getName();
 
         entryService.deleteAllEntriesByAccountId(accountId);
         accountRepository.deleteById(accountId);
 
-        return "Account with ID " + accountId + " has been deleted successfully.";
+        return accountName + " Account deleted successfully";
     }
 }

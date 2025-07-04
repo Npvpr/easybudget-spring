@@ -31,6 +31,5 @@ public class DbInit {
             System.out.println("Guest User already exists: " + e.getMessage());
         }
 
-
     }
 }

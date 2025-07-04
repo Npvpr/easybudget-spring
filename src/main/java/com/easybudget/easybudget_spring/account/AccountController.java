@@ -8,6 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.validation.Valid;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,14 +43,14 @@ public class AccountController {
     }
 
     @PostMapping
-    public ResponseEntity<AccountDto> addAccount(@RequestBody CreateAccountRequestDto accountRequest) {
-        return new ResponseEntity<>(accountService.addAccount(accountRequest), HttpStatus.CREATED);
+    public ResponseEntity<AccountDto> createAccount(@Valid @RequestBody CreateAccountRequestDto createAccountRequestDto) {
+        return new ResponseEntity<>(accountService.createAccount(createAccountRequestDto), HttpStatus.CREATED);
     }
 
     @PutMapping("/{accountId}")
     public ResponseEntity<AccountDto> updateAccount(@PathVariable Long accountId,
-            @RequestBody UpdateAccountRequestDto accountRequest) {
-        return new ResponseEntity<>(accountService.updateAccount(accountId, accountRequest), HttpStatus.OK);
+            @Valid @RequestBody UpdateAccountRequestDto updateAccountRequestDto) {
+        return new ResponseEntity<>(accountService.updateAccount(accountId, updateAccountRequestDto), HttpStatus.OK);
     }
 
     @DeleteMapping("/{accountId}")

@@ -4,58 +4,58 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.easybudget.easybudget_spring.EasybudgetSpringApplication;
+import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
-@RequestMapping("/api/entry")
+@RequestMapping("/api/entries")
 public class EntryController {
-    private static final Logger log = LoggerFactory.getLogger(EasybudgetSpringApplication.class);
 
     @Autowired
     private EntryService entryService;
 
-    @GetMapping("/all")
-    public List<Entry> getAllEntries() {
-        return entryService.getAllEntries();
+    @GetMapping
+    public ResponseEntity<List<EntryDto>> getAllEntries() {
+        return new ResponseEntity<>(entryService.getAllEntries(), HttpStatus.OK);
     }
 
-    @GetMapping
-    public Entry getEntryById(@RequestParam Long id) {
-        return entryService.getEntryById(id);
+    @GetMapping("/{entryId}")
+    public ResponseEntity<EntryDto> getEntryById(@PathVariable Long entryId) {
+        return new ResponseEntity<>(entryService.getEntryById(entryId), HttpStatus.OK);
     }
 
     @PostMapping
-    public Entry addEntry(@RequestBody Entry entry) {
-        return entryService.addEntry(entry);
+    public ResponseEntity<EntryDto> createEntry(@Valid @RequestBody CreateEntryRequestDto createEntryRequestDto) {
+        return new ResponseEntity<>(entryService.createEntry(createEntryRequestDto), HttpStatus.CREATED);
     }
 
-    @PutMapping
-    public Entry updateEntry(@RequestParam Long id, @RequestBody Entry entry) {
-        return entryService.updateEntry(id, entry);
+    @PutMapping("/{entryId}")
+    public ResponseEntity<EntryDto> updateEntry(@PathVariable Long entryId, @Valid @RequestBody UpdateEntryRequestDto updateEntryRequestDto) {
+        return new ResponseEntity<>(entryService.updateEntry(entryId, updateEntryRequestDto), HttpStatus.OK);
     }
 
-    @DeleteMapping
-    public void deleteEntry(@RequestParam Long id) {
-        entryService.deleteEntry(id);
+    @DeleteMapping("/{entryId}")
+    public ResponseEntity<Void> deleteEntry(@PathVariable Long entryId) {
+        entryService.deleteEntry(entryId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("/monthEntry")
-    public Map<String, Object> getEntriesForMonthEntry(@RequestParam int year, @RequestParam int month) {
-        return entryService.filterEntriesForMonthEntry(year, month);
+    public ResponseEntity<Map<String, Object>> getEntriesForMonthEntry(@RequestParam int year, @RequestParam int month) {
+        return new ResponseEntity<>(entryService.filterEntriesForMonthEntry(year, month), HttpStatus.OK);
     }
 
     @GetMapping("/graphs/month")
