@@ -1,8 +1,11 @@
 package com.easybudget.easybudget_spring.aichat;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,5 +23,10 @@ public class AiChatController {
     @PostMapping("/chat")
     public ResponseEntity<AiChatResponseDto> chat(@Valid @RequestBody AiChatRequestDto request) {
         return new ResponseEntity<>(aiChatService.chat(request), HttpStatus.OK);
+    }
+
+    @GetMapping("/chat/history")
+    public ResponseEntity<List<AiChatHistoryDto>> getChatHistory() {
+        return new ResponseEntity<>(aiChatService.getChatHistory(), HttpStatus.OK);
     }
 }

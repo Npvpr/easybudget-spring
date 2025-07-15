@@ -91,7 +91,7 @@ public class EmbeddingService {
 
     public EntryEmbedding updateEntryEmbedding(Entry oldEntry) {
         Long entryId = oldEntry.getId();
-        EntryEmbedding existingEmbedding = entryEmbeddingRepository.findById(entryId)
+        EntryEmbedding existingEmbedding = entryEmbeddingRepository.findByEntryId(entryId)
                 .orElseThrow(() -> new NotFoundException("Embedding not found with Entry ID: " + entryId));
 
         existingEmbedding.setEmbedding(getEmbedding(oldEntry.toString()));
@@ -101,7 +101,7 @@ public class EmbeddingService {
 
     public void deleteEntryEmbedding(Long entryId) {
 
-        entryEmbeddingRepository.findById(entryId)
+        entryEmbeddingRepository.findByEntryId(entryId)
                 .orElseThrow(() -> new NotFoundException("Embedding not found with Entry ID: " + entryId));
 
         entryEmbeddingRepository.deleteById(entryId);

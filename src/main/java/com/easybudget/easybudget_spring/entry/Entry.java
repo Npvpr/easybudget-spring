@@ -5,8 +5,10 @@ import java.time.LocalDate;
 
 import com.easybudget.easybudget_spring.account.Account;
 import com.easybudget.easybudget_spring.category.Category;
+import com.easybudget.easybudget_spring.embedding.EntryEmbedding;
 import com.easybudget.easybudget_spring.user.User;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -17,6 +19,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -67,6 +70,9 @@ public class Entry {
 
     @Column(name = "description", nullable = false, length = 1000)
     private String description;
+
+    @OneToOne(mappedBy = "entry", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private EntryEmbedding embedding;
 
     @Override
     public String toString() {

@@ -1,6 +1,7 @@
 package com.easybudget.easybudget_spring.embedding;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -9,6 +10,12 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EntryEmbeddingRepository extends JpaRepository<EntryEmbedding, Long> {
+    @Query(value = """
+        SELECT ee FROM EntryEmbedding ee 
+        WHERE ee.entry.id = :entryId
+        """)
+    Optional<EntryEmbedding> findByEntryId(@Param("entryId") Long entryId);
+    
     @Query(value = """
         SELECT en.id
         FROM entry_embeddings ee

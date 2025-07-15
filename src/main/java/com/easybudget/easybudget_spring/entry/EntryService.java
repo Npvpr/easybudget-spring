@@ -21,7 +21,6 @@ import com.easybudget.easybudget_spring.account.AccountCheckService;
 import com.easybudget.easybudget_spring.category.Category;
 import com.easybudget.easybudget_spring.category.CategoryCheckService;
 import com.easybudget.easybudget_spring.embedding.EmbeddingService;
-import com.easybudget.easybudget_spring.embedding.EntryEmbedding;
 import com.easybudget.easybudget_spring.user.User;
 import com.easybudget.easybudget_spring.user.UserService;
 

@@ -1,5 +1,7 @@
 package com.easybudget.easybudget_spring.embedding;
 
+import org.hibernate.annotations.Type;
+
 import com.easybudget.easybudget_spring.entry.Entry;
 
 import jakarta.persistence.Column;
@@ -30,6 +32,7 @@ public class EntryEmbedding {
     @JoinColumn(name = "entry_id")
     private Entry entry;
 
+    @Type(VectorType.class)
     @Column(columnDefinition = "vector(1538)", name = "embedding", nullable = false)
     private float[] embedding;
 }
