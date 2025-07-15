@@ -14,7 +14,7 @@ public class EntryMapper {
                 .accountDto(AccountMapper.toDto(entry.getAccount()))
                 .categoryDto(CategoryMapper.toDto(entry.getCategory()))
                 .cost(entry.getCost())
-                .dateTime(entry.getDateTime())
+                .date(entry.getDate())
                 .description(entry.getDescription())
                 .build();
     }

@@ -1,6 +1,6 @@
 package com.easybudget.easybudget_spring.entry;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -79,8 +79,8 @@ public class EntryController {
             @RequestParam(required = false) Type type,
             @RequestParam(required = false) Long accountId,
             @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) LocalDateTime startDate,
-            @RequestParam(required = false) LocalDateTime endDate,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
             String sortField, String sortOrder) {
 
         return entryService.filterEntriesForHistory(type, accountId, categoryId, startDate, endDate, sortField,

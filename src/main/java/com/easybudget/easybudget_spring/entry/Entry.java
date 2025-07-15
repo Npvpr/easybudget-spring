@@ -1,7 +1,7 @@
 package com.easybudget.easybudget_spring.entry;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import com.easybudget.easybudget_spring.account.Account;
 import com.easybudget.easybudget_spring.category.Category;
@@ -62,10 +62,23 @@ public class Entry {
     private BigDecimal cost;
 
     // SQL is not case sensitive, so you can't name dateTime
-    @Column(name = "datetime", nullable = false)
-    private LocalDateTime dateTime;
+    @Column(name = "date", nullable = false)
+    private LocalDate date;
 
     @Column(name = "description", nullable = false, length = 1000)
     private String description;
+
+    @Override
+    public String toString() {
+
+        return String.format(
+                "[%s] %s: €%.2f via %s (%s) | %s",
+                date,
+                category.getName(),
+                cost,
+                account.getName(),
+                type,
+                description);
+    }
 
 }

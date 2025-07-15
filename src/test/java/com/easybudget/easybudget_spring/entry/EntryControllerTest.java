@@ -23,7 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -70,7 +70,7 @@ public class EntryControllerTest {
                 .type(Type.INCOME)
                 .accountId(account.getId()) // use generated ID
                 .categoryId(category.getId()) // use generated ID
-                .dateTime(LocalDateTime.now())
+                .date(LocalDate.now())
                 .build();
 
         String response = mockMvc.perform(post("/api/entries")
@@ -111,7 +111,7 @@ public class EntryControllerTest {
                 .type(Type.OUTCOME)
                 .accountId(1L)
                 .categoryId(1L)
-                .dateTime(LocalDateTime.now())
+                .date(LocalDate.now())
                 .build();
 
         mockMvc.perform(post("/api/entries")
@@ -130,7 +130,7 @@ public class EntryControllerTest {
                 .type(null)
                 .accountId(null)
                 .categoryId(null)
-                .dateTime(null)
+                .date(null)
                 .build();
 
         mockMvc.perform(post("/api/entries")
@@ -147,7 +147,7 @@ public class EntryControllerTest {
                 .type(Type.INCOME)
                 .accountId(1L)
                 .categoryId(1L)
-                .dateTime(LocalDateTime.now())
+                .date(LocalDate.now())
                 .build();
 
         mockMvc.perform(put("/api/entries/{entryId}", testEntryId)
@@ -166,7 +166,7 @@ public class EntryControllerTest {
                 .type(Type.INCOME)
                 .accountId(1L)
                 .categoryId(1L)
-                .dateTime(LocalDateTime.now())
+                .date(LocalDate.now())
                 .build();
 
         mockMvc.perform(put("/api/entries/{entryId}", 999999)

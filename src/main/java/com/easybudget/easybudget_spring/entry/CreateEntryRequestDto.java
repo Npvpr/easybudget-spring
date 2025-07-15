@@ -1,7 +1,7 @@
 package com.easybudget.easybudget_spring.entry;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -32,8 +32,8 @@ public class CreateEntryRequestDto {
     @DecimalMax(value = "1000000000.00", inclusive = true, message = "Cost cannot exceed 1 billion.")
     private BigDecimal cost;
 
-    @NotNull(message = "DateTime cannot be null.")
-    private LocalDateTime dateTime;
+    @NotNull(message = "Date cannot be null.")
+    private LocalDate date;
 
     @NotBlank(message = "Description is required.")
     @Size(min=5, max = 1000, message = "Description must be between 5 and 1000 characters.")

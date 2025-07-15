@@ -2,7 +2,7 @@ package com.easybudget.easybudget_spring.entry;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,6 +20,8 @@ import com.easybudget.easybudget_spring.account.AccountBalanceService;
 import com.easybudget.easybudget_spring.account.AccountCheckService;
 import com.easybudget.easybudget_spring.category.Category;
 import com.easybudget.easybudget_spring.category.CategoryCheckService;
+import com.easybudget.easybudget_spring.embedding.EmbeddingService;
+import com.easybudget.easybudget_spring.embedding.EntryEmbedding;
 import com.easybudget.easybudget_spring.user.User;
 import com.easybudget.easybudget_spring.user.UserService;
 
@@ -48,11 +50,15 @@ public class EntryService {
     private CategoryCheckService categoryCheckService;
 
     @Autowired
+    private EmbeddingService embeddingService;
+
+    @Autowired
     private UserService userService;
 
     public List<EntryDto> getAllEntries() {
         User currentUser = userService.getCurrentAuthenticatedUser();
         List<Entry> entries = entryRepository.findAllByUser(currentUser);
+
         return entries.stream()
                 .map(EntryMapper::toDto)
                 .toList();
@@ -60,6 +66,7 @@ public class EntryService {
 
     public EntryDto getEntryById(Long entryId) {
         Entry entry = entryCheckService.findEntryById(entryId);
+        System.out.println(entry.toString());
         return EntryMapper.toDto(entry);
     }
 
@@ -77,12 +84,22 @@ public class EntryService {
                 .account(connectedAccount)
                 .category(connectedCategory)
                 .cost(createEntryRequestDto.getCost())
-                .dateTime(createEntryRequestDto.getDateTime())
+                .date(createEntryRequestDto.getDate())
                 .description(createEntryRequestDto.getDescription())
                 .build();
         accountBalanceService.updateAccountBalanceOfNewEntry(newEntry, connectedAccount);
 
+        // try {
+        // Thread.sleep(300);
+        // } catch (InterruptedException e) {
+        // Thread.currentThread().interrupt();
+        // throw new RuntimeException("Interrupted during rate limit delay", e);
+        // }
+
+        embeddingService.createEntryEmbedding(newEntry);
+
         Entry savedEntry = entryRepository.save(newEntry);
+        System.out.println("Saved Entry: " + savedEntry.toString());
 
         return EntryMapper.toDto(savedEntry);
     }
@@ -93,16 +110,16 @@ public class EntryService {
 
         // check if the account and category exist
         Account newAccount = accountCheckService.findAccountById(updateEntryRequestDto.getAccountId());
-        Category connectedCategory = categoryCheckService.findCategoryById(updateEntryRequestDto.getCategoryId());
+        Category newCategory = categoryCheckService.findCategoryById(updateEntryRequestDto.getCategoryId());
 
         // update the existing/old entry with the new values
         Entry newEntry = Entry.builder()
                 .id(entryId)
                 .type(updateEntryRequestDto.getType())
                 .account(newAccount)
-                .category(connectedCategory)
+                .category(newCategory)
                 .cost(updateEntryRequestDto.getCost())
-                .dateTime(updateEntryRequestDto.getDateTime())
+                .date(updateEntryRequestDto.getDate())
                 .description(updateEntryRequestDto.getDescription())
                 .build();
         accountBalanceService.updateAccountBalanceOfOldEntry(oldEntry, newEntry, newAccount);
@@ -111,8 +128,10 @@ public class EntryService {
         oldEntry.setAccount(newEntry.getAccount());
         oldEntry.setCategory(newEntry.getCategory());
         oldEntry.setCost(newEntry.getCost());
-        oldEntry.setDateTime(newEntry.getDateTime());
+        oldEntry.setDate(newEntry.getDate());
         oldEntry.setDescription(newEntry.getDescription());
+
+        embeddingService.updateEntryEmbedding(oldEntry);
 
         Entry savedEntry = entryRepository.save(oldEntry);
 
@@ -123,6 +142,7 @@ public class EntryService {
         Entry deletingEntry = entryCheckService.findEntryById(entryId);
         accountBalanceService.updateAccountBalanceOfDeletedEntry(deletingEntry);
 
+        embeddingService.deleteEntryEmbedding(entryId);
         entryRepository.deleteById(entryId);
 
         return "Entry with ID " + entryId + " deleted successfully.";
@@ -159,18 +179,18 @@ public class EntryService {
 
     public Map<String, Object> filterEntriesForMonthEntry(int year, int month) {
 
-        LocalDateTime startDateTime = LocalDateTime.of(
-                year, month, 1, 0, 0, 0);
-        LocalDateTime endDateTime = LocalDateTime.of(
-                year, month, YearMonth.of(year, month).lengthOfMonth(), 23, 59, 59);
+        LocalDate startDate = LocalDate.of(
+                year, month, 1);
+        LocalDate endDate = LocalDate.of(
+                year, month, YearMonth.of(year, month).lengthOfMonth());
 
         User currentUser = userService.getCurrentAuthenticatedUser();
 
         Specification<Entry> spec = Specification
-                .where(EntrySpecification.hasDateTimeBetween(startDateTime, endDateTime))
+                .where(EntrySpecification.hasDateBetween(startDate, endDate))
                 .and(EntrySpecification.belongsToUser(currentUser));
 
-        List<Entry> entries = entryRepository.findAll(spec, Sort.by(Sort.Direction.ASC, "dateTime"));
+        List<Entry> entries = entryRepository.findAll(spec, Sort.by(Sort.Direction.ASC, "date"));
 
         BigDecimal totalIncome = BigDecimal.ZERO;
         BigDecimal totalOutcome = BigDecimal.ZERO;
@@ -201,29 +221,29 @@ public class EntryService {
 
     private Map<String, Object> filterEntriesForGraphs(Integer year, Integer month, Integer endYear) {
 
-        LocalDateTime startDateTime, endDateTime;
+        LocalDate startDate, endDate;
 
         if (month != null) {
-            startDateTime = LocalDateTime.of(
-                    year, month, 1, 0, 0, 0);
-            endDateTime = LocalDateTime.of(
-                    year, month, YearMonth.of(year, month).lengthOfMonth(), 23, 59, 59);
+            startDate = LocalDate.of(
+                    year, month, 1);
+            endDate = LocalDate.of(
+                    year, month, YearMonth.of(year, month).lengthOfMonth());
         } else if (endYear != null) {
-            startDateTime = LocalDateTime.of(
-                    year, 1, 1, 0, 0, 0);
-            endDateTime = LocalDateTime.of(
-                    endYear, 12, 31, 23, 59, 59);
+            startDate = LocalDate.of(
+                    year, 1, 1);
+            endDate = LocalDate.of(
+                    endYear, 12, 31);
         } else {
-            startDateTime = LocalDateTime.of(
-                    year, 1, 1, 0, 0, 0);
-            endDateTime = LocalDateTime.of(
-                    year, 12, 31, 23, 59, 59);
+            startDate = LocalDate.of(
+                    year, 1, 1);
+            endDate = LocalDate.of(
+                    year, 12, 31);
         }
 
         User currentUser = userService.getCurrentAuthenticatedUser();
 
         Specification<Entry> spec = Specification
-                .where(EntrySpecification.hasDateTimeBetween(startDateTime, endDateTime))
+                .where(EntrySpecification.hasDateBetween(startDate, endDate))
                 .and(EntrySpecification.belongsToUser(currentUser));
 
         List<Entry> entries = entryRepository.findAll(spec);
@@ -236,8 +256,8 @@ public class EntryService {
         Map<String, BigDecimal> outcomeCategoryPercentageList = new HashMap<>();
 
         for (Entry entry : entries) {
-            Object date = (month != null) ? entry.getDateTime().getDayOfMonth()
-                    : (endYear != null) ? entry.getDateTime().getYear() : entry.getDateTime().getMonth();
+            Object date = (month != null) ? entry.getDate().getDayOfMonth()
+                    : (endYear != null) ? entry.getDate().getYear() : entry.getDate().getMonth();
             String categoryName = entry.getCategory().getName();
 
             if (entry.getType() == Type.INCOME) {
@@ -301,8 +321,8 @@ public class EntryService {
     }
 
     public Map<String, Object> filterEntriesForHistory(Type type, Long accountId, Long categoryId,
-            LocalDateTime startDate,
-            LocalDateTime endDate, String sortField, String sortOrder) {
+            LocalDate startDate,
+            LocalDate endDate, String sortField, String sortOrder) {
 
         User currentUser = userService.getCurrentAuthenticatedUser();
 
@@ -311,12 +331,12 @@ public class EntryService {
                 .and(EntrySpecification.belongsToUser(currentUser))
                 .and(EntrySpecification.hasAccountById(accountId))
                 .and(EntrySpecification.hasCategoryById(categoryId))
-                .and(EntrySpecification.hasDateTimeBetween(startDate, endDate));
+                .and(EntrySpecification.hasDateBetween(startDate, endDate));
         ;
 
-        // This makes DateTime Descending Order as default, even if frontend requests
+        // This makes Date Descending Order as default, even if frontend requests
         // false/null inputs
-        sortField = "cost".equalsIgnoreCase(sortField) ? "cost" : "dateTime";
+        sortField = "cost".equalsIgnoreCase(sortField) ? "cost" : "date";
         Sort.Direction sortDirection = "ASC".equalsIgnoreCase(sortOrder) ? Sort.Direction.ASC : Sort.Direction.DESC;
 
         Sort sort = Sort.by(sortDirection, sortField);

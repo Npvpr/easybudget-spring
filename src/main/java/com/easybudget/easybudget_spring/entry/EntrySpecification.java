@@ -1,6 +1,6 @@
 package com.easybudget.easybudget_spring.entry;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import org.springframework.data.jpa.domain.Specification;
 
@@ -28,15 +28,15 @@ public class EntrySpecification {
                 : criteriaBuilder.equal(root.get("category").get("id"), categoryId);
     }
 
-    public static Specification<Entry> hasDateTimeBetween(LocalDateTime startDateTime, LocalDateTime endDateTime) {
+    public static Specification<Entry> hasDateBetween(LocalDate startDate, LocalDate endDate) {
         return (root, query, criteriaBuilder) -> {
-            if (startDateTime == null && endDateTime == null)
+            if (startDate == null && endDate == null)
                 return null;
-            if (startDateTime != null && endDateTime != null)
-                return criteriaBuilder.between(root.get("dateTime"), startDateTime, endDateTime);
-            if (startDateTime != null)
-                return criteriaBuilder.greaterThanOrEqualTo(root.get("dateTime"), startDateTime);
-            return criteriaBuilder.lessThanOrEqualTo(root.get("dateTime"), endDateTime);
+            if (startDate != null && endDate != null)
+                return criteriaBuilder.between(root.get("date"), startDate, endDate);
+            if (startDate != null)
+                return criteriaBuilder.greaterThanOrEqualTo(root.get("date"), startDate);
+            return criteriaBuilder.lessThanOrEqualTo(root.get("date"), endDate);
         };
     }
 }

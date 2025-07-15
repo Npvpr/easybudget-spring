@@ -1,7 +1,7 @@
 package com.easybudget.easybudget_spring.entry;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import com.easybudget.easybudget_spring.account.AccountDto;
 import com.easybudget.easybudget_spring.category.CategoryDto;
@@ -17,6 +17,6 @@ public class EntryDto {
     private AccountDto accountDto;
     private CategoryDto categoryDto;
     private BigDecimal cost;
-    private LocalDateTime dateTime;
+    private LocalDate date;
     private String description;
 }

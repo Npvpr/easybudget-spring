@@ -1,6 +1,6 @@
 services:
   eb_db:
-    image: postgres:16
+    image: pgvector/pgvector:0.8.0-pg16
     environment:
       POSTGRES_DB: easybudgetdb
       POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
@@ -10,17 +10,17 @@ services:
     volumes:
       - eb_db_data:/var/lib/postgresql/data
 
-  app:
-    build: .
-    depends_on:
-      - eb_db
-    environment:
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./target:/easybudget_spring
+  # app:
+  #   build: .
+  #   depends_on:
+  #     - eb_db
+  #   environment:
+  #     SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+  #     SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+  #   ports:
+  #     - "8080:8080"
+  #   volumes:
+  #     - ./target:/easybudget_spring
 
 volumes:
   eb_db_data:

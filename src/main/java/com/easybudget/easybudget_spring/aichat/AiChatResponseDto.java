@@ -1,4 +1,4 @@
-package com.easybudget.easybudget_spring.ai;
+package com.easybudget.easybudget_spring.aichat;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
