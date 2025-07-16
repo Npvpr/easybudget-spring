@@ -7,6 +7,6 @@ import lombok.Data;
 @Data
 public class AiChatRequestDto {
     @NotBlank(message = "Message cannot be blank.")
-    @Size(min = 1, max = 500, message = "Message must be between 1 and 500 characters.")
+    @Size(min = 1, max = 250, message = "Message must be between 1 and 500 characters.")
     private String message;
 }

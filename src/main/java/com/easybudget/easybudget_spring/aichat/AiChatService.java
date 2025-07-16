@@ -25,23 +25,12 @@ public class AiChatService {
 
         private final ChatClient chatClient;
 
+        private final String cachedSystemMessage;
+
         public AiChatService(ChatClient.Builder builder) {
-                this.chatClient = builder
-                                .defaultOptions(OpenAiChatOptions.builder()
-                                                .model("gpt-4.1-nano-2025-04-14")
-                                                .temperature(1.0)
-                                                .maxTokens(200)
-                                                .build())
-                                .build();
-        }
 
-        public AiChatResponseDto chat(AiChatRequestDto request) {
-
-                User currentUser = userService.getCurrentAuthenticatedUser();
-
-                String systemInstructions = """
+                this.cachedSystemMessage = """
                                 Your rules:
-
                                 **General Guidelines**
                                 - You are a Certified Financial Analyst AI
                                 - Be friendly and polite
@@ -54,30 +43,43 @@ public class AiChatService {
                                 - User's currency is %s
                                 - Provide currency symbols correctly
                                 - Please respond in plain text format
-
                                 **Finance Principals**
                                 - Identify query type (spending/income/savings)
                                 - Calculate relevant metrics
-
                                 1. Financial Terms:
                                    - INCOME: Money received (salary, gifts)
                                    - EXPENSE: Money spent (purchases, bills)
                                    - NET = INCOME - EXPENSES
-
                                 2. Contextual Analysis:
                                    - If asked about "spending/expenses", ONLY consider OUTCOME entries
                                    - If asked about "income/earnings", ONLY consider INCOME entries
                                    - For "savings" or "balance", compare TOTAL INCOME vs TOTAL EXPENSES
+                                """;
 
+                this.chatClient = builder
+                                .defaultSystem(cachedSystemMessage)
+                                .defaultOptions(OpenAiChatOptions.builder()
+                                                .model("gpt-4.1-nano-2025-04-14")
+                                                .temperature(1.0)
+                                                .maxTokens(150)
+                                                .build())
+                                .build();
+        }
+
+        public AiChatResponseDto chat(AiChatRequestDto request) {
+
+                User currentUser = userService.getCurrentAuthenticatedUser();
+
+                String dynamicContext = """
                                 Current user's relevant financial entries:
-                                """.formatted(currentUser.getCurrency())
+                                """
                                 + String.join(",\n", embeddingService.getTopKRelevantEntries(request.getMessage(), 5));
 
-                System.out.println("System Instructions: " + systemInstructions);
+                System.out.println("System Instructions: " + dynamicContext);
 
                 String reply = chatClient
                                 .prompt()
-                                .system(systemInstructions)
+                                .system(dynamicContext)
                                 .user(request.getMessage())
                                 .call()
                                 .content();
