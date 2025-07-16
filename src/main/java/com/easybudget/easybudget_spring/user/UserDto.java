@@ -13,4 +13,6 @@ public class UserDto {
     private String username;
     private Role role;
     private AuthProvider authProvider;
+    private int dailyRateLimit;
+    private String currency;
 }

@@ -63,7 +63,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             // for all unauthenticated errors
             // might need to improve this, now every exception is thrown into this handler
-            .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(authEntryPointJwt))
+            // .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(authEntryPointJwt))
             .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorizeRequests -> authorizeRequests
             .requestMatchers("/api/auth/**", "/api/test/all").permitAll()  // public for login/signup endpoints

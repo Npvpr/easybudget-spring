@@ -41,5 +41,13 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "auth_provider", nullable = false)
     private AuthProvider authProvider;
-    
+
+    @Column(name = "daily_rate_limit")
+    @Builder.Default
+    private Integer dailyRateLimit = 0;
+
+    @Column(name = "currency")
+    @Builder.Default
+    private String currency = "£";
+
 }

@@ -67,6 +67,10 @@ public class UserService {
                 new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword()));
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        // Username actually contains the userId
+        User currentUser = findById(Long.valueOf(userDetails.getUsername()));
+        currentUser.setDailyRateLimit(0);
+        userRepository.save(currentUser);
 
         // this "getUsername" returns the userId, because inside loadUserByUsername,
         // userId was returned
@@ -109,6 +113,21 @@ public class UserService {
                 .username(user.getUsername())
                 .role(user.getRole())
                 .authProvider(user.getAuthProvider())
+                .dailyRateLimit(user.getDailyRateLimit())
+                .currency(user.getCurrency())
                 .build();
+    }
+
+    public String updateCurrency(String currency) {
+        User user = getCurrentAuthenticatedUser();
+        user.setCurrency(currency);
+        userRepository.save(user);
+        return "Currency updated to: " + currency;
+    }
+
+    public void increaseDailyRateLimit() {
+        User user = getCurrentAuthenticatedUser();
+        user.setDailyRateLimit(user.getDailyRateLimit() + 1);
+        userRepository.save(user);
     }
 }

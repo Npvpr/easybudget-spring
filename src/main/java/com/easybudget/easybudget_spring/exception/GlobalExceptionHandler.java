@@ -3,6 +3,7 @@ package com.easybudget.easybudget_spring.exception;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -52,6 +53,11 @@ public class GlobalExceptionHandler {
         //     errors.add(error.getDefaultMessage())
         // );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(NonTransientAiException.class)
+    public ResponseEntity<String> handleNonTransientAiException(NonTransientAiException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.TOO_MANY_REQUESTS);
     }
 
 }

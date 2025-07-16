@@ -21,7 +21,7 @@ public class AiChatController {
     private AiChatService aiChatService;
 
     @PostMapping("/chat")
-    public ResponseEntity<AiChatResponseDto> chat(@Valid @RequestBody AiChatRequestDto request) {
+    public ResponseEntity<Integer> chat(@Valid @RequestBody AiChatRequestDto request) {
         return new ResponseEntity<>(aiChatService.chat(request), HttpStatus.OK);
     }
 

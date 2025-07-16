@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.easybudget.easybudget_spring.account.AccountDto;
 import com.easybudget.easybudget_spring.account.AccountService;
 import com.easybudget.easybudget_spring.account.CreateAccountRequestDto;
+import com.easybudget.easybudget_spring.aichat.AiChatService;
 import com.easybudget.easybudget_spring.category.CategoryDto;
 import com.easybudget.easybudget_spring.category.CategoryService;
 import com.easybudget.easybudget_spring.category.CreateCategoryRequestDto;
@@ -33,6 +34,9 @@ public class GuestService {
 
         @Autowired
         private EntryService entryService;
+
+        @Autowired
+        private AiChatService aiChatService;
 
         public void resetDb() {
                 // This database reset is dangerous for other users
@@ -59,6 +63,8 @@ public class GuestService {
                         // Delete all categories of the guest user
                         categoryService.deleteCategory(categoryDto.getId());
                 }
+
+                aiChatService.deleteChatHistory();
 
                 // Whenever a guest user logs in, populate their data with current month's data
                 // so that they can immediately start testing all the features
