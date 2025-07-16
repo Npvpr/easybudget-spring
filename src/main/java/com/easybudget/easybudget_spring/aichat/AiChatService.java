@@ -35,7 +35,7 @@ public class AiChatService {
                                 .build();
         }
 
-        public int chat(AiChatRequestDto request) {
+        public AiChatResponseDto chat(AiChatRequestDto request) {
 
                 User currentUser = userService.getCurrentAuthenticatedUser();
 
@@ -43,16 +43,17 @@ public class AiChatService {
                                 Your rules:
 
                                 **General Guidelines**
-                                - You are a Certified Financial Analyst AI.
-                                - Be friendly and polite.
-                                - Talk naturally.
-                                - The entries provided are the most relevant 5 entries.
-                                - There might be other entries.
-                                - Don't repeat same things again and again.
+                                - You are a Certified Financial Analyst AI
+                                - Be friendly and polite
+                                - Talk naturally
+                                - The entries provided are the most relevant 5 entries
+                                - There might be other entries
+                                - Don't repeat same things again and again
                                 - Be concise.
                                 - Very politely decline if questions are about irrelevant topics.
                                 - User's currency is %s
-                                - Provide currency symbols correctly.
+                                - Provide currency symbols correctly
+                                - Please respond in plain text format
 
                                 **Finance Principals**
                                 - Identify query type (spending/income/savings)
@@ -84,10 +85,12 @@ public class AiChatService {
                 createChatHistory(request.getMessage(), reply);
                 userService.increaseDailyRateLimit();
 
-                return currentUser.getDailyRateLimit();
+                return AiChatResponseDto.builder()
+                                .reply(reply)
+                                .build();
         }
 
-        public AiChatHistoryDto createChatHistory(String prompt, String response) {
+        public AiChatDto createChatHistory(String prompt, String response) {
                 User currentUser = userService.getCurrentAuthenticatedUser();
 
                 AiChat newAiChat = AiChat.builder()
@@ -99,25 +102,27 @@ public class AiChatService {
 
                 aiChatRepository.save(newAiChat);
 
-                return AiChatHistoryDto.builder()
+                return AiChatDto.builder()
                                 .prompt(newAiChat.getPrompt())
                                 .response(newAiChat.getResponse())
                                 .createdAt(newAiChat.getCreatedAt())
                                 .build();
         }
 
-        public List<AiChatHistoryDto> getChatHistory() {
+        public AiChatHistoryDto getChatHistory() {
 
                 User currentUser = userService.getCurrentAuthenticatedUser();
 
-                return aiChatRepository.findAllByUser(currentUser).stream()
-                                .map(chat -> AiChatHistoryDto.builder()
-                                                .prompt(chat.getPrompt())
-                                                .response(chat.getResponse())
-                                                .createdAt(chat.getCreatedAt())
-                                                .build())
-                                .toList();
-
+                return AiChatHistoryDto.builder()
+                                .chatHistory(aiChatRepository.findAllByUser(currentUser).stream()
+                                                .map(chat -> AiChatDto.builder()
+                                                                .prompt(chat.getPrompt())
+                                                                .response(chat.getResponse())
+                                                                .createdAt(chat.getCreatedAt())
+                                                                .build())
+                                                .toList())
+                                .dailyRateLimit(currentUser.getDailyRateLimit())
+                                .build();
         }
 
         public void deleteChatHistory() {

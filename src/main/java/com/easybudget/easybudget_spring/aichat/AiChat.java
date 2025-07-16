@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.easybudget.easybudget_spring.user.User;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -34,9 +35,11 @@ public class AiChat {
     private User user;
 
     @NotNull(message = "Prompt cannot be null.")
+    @Column(columnDefinition = "TEXT")
     private String prompt;
 
     @NotNull(message = "Response cannot be null.")
+    @Column(columnDefinition = "TEXT")
     private String response;
 
     @NotNull(message = "CreatedAt cannot be null.")

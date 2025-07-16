@@ -1,10 +1,10 @@
 package com.easybudget.easybudget_spring.aichat;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
+@Builder
 public class AiChatResponseDto {
     private String reply;
 }

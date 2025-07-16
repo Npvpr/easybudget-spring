@@ -21,12 +21,12 @@ public class AiChatController {
     private AiChatService aiChatService;
 
     @PostMapping("/chat")
-    public ResponseEntity<Integer> chat(@Valid @RequestBody AiChatRequestDto request) {
+    public ResponseEntity<AiChatResponseDto> chat(@Valid @RequestBody AiChatRequestDto request) {
         return new ResponseEntity<>(aiChatService.chat(request), HttpStatus.OK);
     }
 
     @GetMapping("/chat/history")
-    public ResponseEntity<List<AiChatHistoryDto>> getChatHistory() {
+    public ResponseEntity<AiChatHistoryDto> getChatHistory() {
         return new ResponseEntity<>(aiChatService.getChatHistory(), HttpStatus.OK);
     }
 }
