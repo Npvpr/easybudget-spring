@@ -51,6 +51,8 @@ public class AiChatService {
                                 - Don't repeat same things again and again.
                                 - Be concise.
                                 - Very politely decline if questions are about irrelevant topics.
+                                - User's currency is %s
+                                - Provide currency symbols correctly.
 
                                 **Finance Principals**
                                 - Identify query type (spending/income/savings)
@@ -67,10 +69,10 @@ public class AiChatService {
                                    - For "savings" or "balance", compare TOTAL INCOME vs TOTAL EXPENSES
 
                                 Current user's relevant financial entries:
-                                """
+                                """.formatted(currentUser.getCurrency())
                                 + String.join(",\n", embeddingService.getTopKRelevantEntries(request.getMessage(), 5));
 
-                // System.out.println("System Instructions: " + systemInstructions);
+                System.out.println("System Instructions: " + systemInstructions);
 
                 String reply = chatClient
                                 .prompt()

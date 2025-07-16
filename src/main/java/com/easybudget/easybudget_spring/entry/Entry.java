@@ -78,7 +78,7 @@ public class Entry {
     public String toString() {
 
         return String.format(
-                "[%s] %s: €%.2f via %s (%s) | %s",
+                "[%s] %s: %.2f via %s (%s) | %s",
                 date,
                 category.getName(),
                 cost,
