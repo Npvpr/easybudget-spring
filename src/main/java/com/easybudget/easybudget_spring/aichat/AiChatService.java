@@ -3,6 +3,7 @@ package com.easybudget.easybudget_spring.aichat;
 import java.util.List;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,39 +26,9 @@ public class AiChatService {
 
         private final ChatClient chatClient;
 
-        private final String cachedSystemMessage;
-
         public AiChatService(ChatClient.Builder builder) {
 
-                this.cachedSystemMessage = """
-                                Your rules:
-                                **General Guidelines**
-                                - You are a Certified Financial Analyst AI
-                                - Be friendly and polite
-                                - Talk naturally
-                                - The entries provided are the most relevant 5 entries
-                                - There might be other entries
-                                - Don't repeat same things again and again
-                                - Be concise.
-                                - Very politely decline if questions are about irrelevant topics.
-                                - User's currency is %s
-                                - Provide currency symbols correctly
-                                - Please respond in plain text format
-                                **Finance Principals**
-                                - Identify query type (spending/income/savings)
-                                - Calculate relevant metrics
-                                1. Financial Terms:
-                                   - INCOME: Money received (salary, gifts)
-                                   - EXPENSE: Money spent (purchases, bills)
-                                   - NET = INCOME - EXPENSES
-                                2. Contextual Analysis:
-                                   - If asked about "spending/expenses", ONLY consider OUTCOME entries
-                                   - If asked about "income/earnings", ONLY consider INCOME entries
-                                   - For "savings" or "balance", compare TOTAL INCOME vs TOTAL EXPENSES
-                                """;
-
                 this.chatClient = builder
-                                .defaultSystem(cachedSystemMessage)
                                 .defaultOptions(OpenAiChatOptions.builder()
                                                 .model("gpt-4.1-nano-2025-04-14")
                                                 .temperature(1.0)
@@ -70,25 +41,31 @@ public class AiChatService {
 
                 User currentUser = userService.getCurrentAuthenticatedUser();
 
-                String dynamicContext = """
-                                Current user's relevant financial entries:
-                                """
+                String instructions = """
+                                - Act as Financial Advisor AI, reject non-finance questions politely
+                                - Be friendly polite concise natural
+                                - User's currency: %s
+                                - No suggestion prompt/ folow-up questions
+                                - User's 5 most relevant financial entries(There might be other entries):
+                                """.formatted(currentUser.getCurrency())
                                 + String.join(",\n", embeddingService.getTopKRelevantEntries(request.getMessage(), 5));
 
-                System.out.println("System Instructions: " + dynamicContext);
+                System.out.println("System Instructions: " + instructions);
 
-                String reply = chatClient
+                ChatResponse response = chatClient
                                 .prompt()
-                                .system(dynamicContext)
+                                .system(instructions)
                                 .user(request.getMessage())
                                 .call()
-                                .content();
+                                .chatResponse();
 
-                createChatHistory(request.getMessage(), reply);
+                System.out.println("Chat Response Metadata: " + response.getMetadata());
+
+                createChatHistory(request.getMessage(), response.getResult().getOutput().getText());
                 userService.increaseDailyRateLimit();
 
                 return AiChatResponseDto.builder()
-                                .reply(reply)
+                                .reply(response.getResult().getOutput().getText())
                                 .build();
         }
 
