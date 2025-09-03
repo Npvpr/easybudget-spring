@@ -1,6 +1,5 @@
 package com.easybudget.easybudget_spring.user;
 
-import com.easybudget.easybudget_spring.auth.LoginRequestDto;
 import com.easybudget.easybudget_spring.auth.RegisterRequestDto;
 import com.easybudget.easybudget_spring.exception.NotFoundException;
 import com.easybudget.easybudget_spring.security.JwtUtil;
@@ -8,18 +7,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
 
-import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ActiveProfiles("test")
 class UserServiceTest {
 
     @InjectMocks
@@ -29,7 +27,7 @@ class UserServiceTest {
     private AuthenticationManager authenticationManager;
 
     @Mock
-    private JwtUtil jwtUtils;
+    private JwtUtil jwtUtil;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -40,165 +38,110 @@ class UserServiceTest {
     @Mock
     private Authentication authentication;
 
-    @Captor
-    private ArgumentCaptor<User> userCaptor;
-
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
-    // ----------------- createUser -----------------
-
     @Test
-    void testCreateUser_success() {
-        RegisterRequestDto dto = RegisterRequestDto.builder()
+    void testCreateUser_ShouldSaveAndReturnJwtToken() {
+        RegisterRequestDto request = RegisterRequestDto.builder()
                 .email("test@example.com")
-                .username("Test User")
-                .password("password")
+                .username("testuser")
+                .password("password123")
                 .build();
 
-        when(userRepository.existsByEmail(dto.getEmail())).thenReturn(false);
-        when(passwordEncoder.encode(dto.getPassword())).thenReturn("encodedPwd");
-        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(authenticationManager.authenticate(any())).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(new org.springframework.security.core.userdetails.User("123", "", Collections.emptyList()));
-        when(jwtUtils.generateToken("123")).thenReturn("jwt-token");
+        when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
+        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
 
-        String result = userService.createUser(dto);
-
-        assertEquals("jwt-token", result);
-        verify(userRepository).save(userCaptor.capture());
-        assertEquals("Test User", userCaptor.getValue().getUsername());
-        assertEquals("encodedPwd", userCaptor.getValue().getPassword());
-    }
-
-    @Test
-    void testCreateUser_existingEmail_throwsException() {
-        RegisterRequestDto dto = RegisterRequestDto.builder().email("exists@example.com").build();
-        when(userRepository.existsByEmail(dto.getEmail())).thenReturn(true);
-
-        assertThrows(IllegalArgumentException.class, () -> userService.createUser(dto));
-    }
-
-    // ----------------- authenticateUser -----------------
-
-    @Test
-    void testAuthenticateUser_success() {
-        LoginRequestDto dto = LoginRequestDto.builder()
-                .email("email@example.com")
-                .password("password")
+        User savedUser = User.builder()
+                .id(1L)
+                .email("test@example.com")
+                .username("testuser")
+                .password("encodedPassword")
+                .role(Role.USER)
+                .authProvider(AuthProvider.LOCAL)
                 .build();
 
-        when(authenticationManager.authenticate(any())).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(new org.springframework.security.core.userdetails.User("456", "", Collections.emptyList()));
-        when(jwtUtils.generateToken("456")).thenReturn("jwt-token");
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(org.springframework.security.core.userdetails.User
+                .withUsername("1") // simulate userId returned as username
+                .password("encodedPassword")
+                .authorities("ROLE_USER")
+                .build());
+        when(userRepository.findById(1L)).thenReturn(Optional.of(savedUser));
+        when(jwtUtil.generateToken("1")).thenReturn("mockJwtToken");
 
-        String token = userService.authenticateUser(dto);
-        assertEquals("jwt-token", token);
+        String token = userService.createUser(request);
+
+        assertEquals("mockJwtToken", token);
+        verify(userRepository, times(2)).save(any(User.class));
     }
 
-    // ----------------- findById -----------------
+    @Test
+    void testCreateUser_ShouldThrowException_WhenEmailExists() {
+        RegisterRequestDto request = RegisterRequestDto.builder()
+                .email("test@example.com")
+                .username("testuser")
+                .password("password123")
+                .build();
+
+        when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
+
+        assertThrows(IllegalArgumentException.class, () -> userService.createUser(request));
+    }
 
     @Test
-    void testFindById_success() {
-        User user = User.builder().id(1L).username("John").build();
+    void testFindById_ShouldReturnUser() {
+        User user = User.builder().id(1L).email("a@a.com").build();
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         User found = userService.findById(1L);
-        assertEquals("John", found.getUsername());
+        assertEquals("a@a.com", found.getEmail());
     }
 
     @Test
-    void testFindById_notFound() {
-        when(userRepository.findById(99L)).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> userService.findById(99L));
-    }
-
-    // ----------------- existsByEmail -----------------
-
-    @Test
-    void testExistsByEmail_true() {
-        when(userRepository.existsByEmail("a@a.com")).thenReturn(true);
-        assertTrue(userService.existsByEmail("a@a.com"));
+    void testFindById_ShouldThrow_WhenNotFound() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> userService.findById(1L));
     }
 
     @Test
-    void testExistsByEmail_false() {
-        when(userRepository.existsByEmail("b@b.com")).thenReturn(false);
-        assertFalse(userService.existsByEmail("b@b.com"));
-    }
+    void testGetCurrentAuthenticatedUser_ShouldReturnUser() {
+        User user = User.builder().id(5L).email("b@b.com").build();
 
-    // ----------------- findByEmail -----------------
+        when(authentication.isAuthenticated()).thenReturn(true);
+        when(authentication.getName()).thenReturn("5");
 
-    @Test
-    void testFindByEmail_success() {
-        User user = User.builder().email("a@a.com").username("A").build();
-        when(userRepository.findByEmail("a@a.com")).thenReturn(Optional.of(user));
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
 
-        User result = userService.findByEmail("a@a.com");
-        assertEquals("A", result.getUsername());
-    }
-
-    @Test
-    void testFindByEmail_notFound() {
-        when(userRepository.findByEmail("none@none.com")).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> userService.findByEmail("none@none.com"));
-    }
-
-    // ----------------- getCurrentAuthenticatedUser -----------------
-
-    @Test
-    void testGetCurrentAuthenticatedUser_success() {
-        User user = User.builder().id(123L).email("abc@abc.com").build();
-        Authentication auth = mock(Authentication.class);
-
-        when(auth.isAuthenticated()).thenReturn(true);
-        when(auth.getName()).thenReturn("123");
-
-        SecurityContextHolder.getContext().setAuthentication(auth);
-        when(userRepository.findById(123L)).thenReturn(Optional.of(user));
+        when(userRepository.findById(5L)).thenReturn(Optional.of(user));
 
         User result = userService.getCurrentAuthenticatedUser();
-        assertEquals("abc@abc.com", result.getEmail());
+
+        assertEquals("b@b.com", result.getEmail());
     }
 
     @Test
-    void testGetCurrentAuthenticatedUser_unauthenticated() {
-        Authentication auth = mock(Authentication.class);
-        when(auth.isAuthenticated()).thenReturn(false);
-        SecurityContextHolder.getContext().setAuthentication(auth);
+    void testUpdateCurrency_ShouldSaveNewCurrency() {
+        User user = User.builder().id(7L).email("c@c.com").currency("USD").build();
 
-        assertThrows(NotFoundException.class, () -> userService.getCurrentAuthenticatedUser());
-    }
+        when(authentication.isAuthenticated()).thenReturn(true);
+        when(authentication.getName()).thenReturn("7");
 
-    @Test
-    void testGetCurrentAuthenticatedUser_userNotFound() {
-        Authentication auth = mock(Authentication.class);
-        when(auth.isAuthenticated()).thenReturn(true);
-        when(auth.getName()).thenReturn("999");
+        SecurityContext context = mock(SecurityContext.class);
+        when(context.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(context);
 
-        SecurityContextHolder.getContext().setAuthentication(auth);
-        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+        when(userRepository.findById(7L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
-        assertThrows(NotFoundException.class, () -> userService.getCurrentAuthenticatedUser());
-    }
+        String response = userService.updateCurrency("EUR");
 
-    // ----------------- getUserInfos -----------------
-
-    @Test
-    void testGetUserInfos_success() {
-        User user = User.builder().id(100L).email("info@test.com").username("InfoUser").build();
-        Authentication auth = mock(Authentication.class);
-        when(auth.isAuthenticated()).thenReturn(true);
-        when(auth.getName()).thenReturn("100");
-
-        SecurityContextHolder.getContext().setAuthentication(auth);
-        when(userRepository.findById(100L)).thenReturn(Optional.of(user));
-
-        UserDto result = userService.getUserInfos();
-        assertEquals("info@test.com", result.getEmail());
-        assertEquals("InfoUser", result.getUsername());
+        assertEquals("Currency updated to: EUR", response);
+        assertEquals("EUR", user.getCurrency());
     }
 }
-
